@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------
 # Setup the project
 cmake_minimum_required(VERSION 3.16...3.21)
-project(dEdX)
+project(G4VtxRecoParticles)
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -32,8 +32,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(dEdX dEdX.cc ${sources} ${headers})
-target_link_libraries(dEdX ${Geant4_LIBRARIES})
+add_executable(G4VtxRecoParticles G4VtxRecoParticles.cc ${sources} ${headers})
+target_link_libraries(G4VtxRecoParticles ${Geant4_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
@@ -59,9 +59,9 @@ endforeach()
 # For internal Geant4 use - but has no effect if you build this
 # example standalone
 #
-add_custom_target(SP DEPENDS dEdX)
+add_custom_target(SP DEPENDS G4VtxRecoParticles)
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS dEdX DESTINATION bin)
+install(TARGETS G4VtxRecoParticles DESTINATION bin)
