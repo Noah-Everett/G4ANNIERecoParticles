@@ -68,6 +68,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // G4double env_sizeXY = 20*cm, env_sizeZ = 30*cm;
   G4Material* water = nist->FindOrBuildMaterial("G4_WATER");
+  G4MaterialPropertiesTable* water_materialPropertiesTable = new G4MaterialPropertiesTable();
+  G4double water_materialPropertiesTable_energies[4] = {2.00*eV,2.87*eV,2.90*eV,3.47*eV};
+  G4double water_materialPropertiesTable_rindices[4] = {1.333,1.333,1.333,1.333};
+  water_materialPropertiesTable->AddProperty("RINDEX", water_materialPropertiesTable_energies, water_materialPropertiesTable_rindices, 4 );
+  water->SetMaterialPropertiesTable(water_materialPropertiesTable);
+
 
   // Option to switch on/off checking of volumes overlaps
   //

@@ -39,6 +39,9 @@
 #include "FTFP_BERT_HP.hh"
 #include "QGSP_FTFP_BERT.hh"
 #include "FTFQGSP_BERT.hh"
+#include "QGSP_BIC_HP.hh"
+#include "FTFP_BERT.hh"
+#include "G4OpticalPhysics.hh"
 
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
@@ -74,7 +77,9 @@ int main(int argc,char** argv)
   runManager->SetUserInitialization(new DetectorConstruction());
 
   // Physics list
-  G4VModularPhysicsList* physicsList = new QBBC;//FTFQGSP_BERT; //QGSP_FTFP_BERT; //FTFP_BERT_HP;//QBBC;
+  G4VModularPhysicsList* physicsList = new QBBC;//QGSP_BIC_HP;//FTFQGSP_BERT; //QGSP_FTFP_BERT; //FTFP_BERT_HP;//QBBC;
+  G4OpticalPhysics* opticalPhysics = new G4OpticalPhysics();
+  physicsList->RegisterPhysics(opticalPhysics);
   physicsList->SetVerboseLevel(1);
   runManager->SetUserInitialization(physicsList);
 

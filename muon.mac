@@ -7,8 +7,11 @@
 #/process/verbose 1
 
 /gun/particle mu-
-/gun/energy 300 MeV
+/gun/energy 500 MeV
 /gun/position 0 0 0
 /gun/direction 1 0 0
 
-/run/beamOn 1
+/process/activate Cerenkov
+/process/activate Scintillation
+
+/run/beamOn 2
