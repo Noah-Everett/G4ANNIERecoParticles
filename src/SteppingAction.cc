@@ -37,6 +37,8 @@
 #include "G4LogicalVolume.hh"
 #include"G4SystemOfUnits.hh"
 
+#include<cmath>
+
 namespace B1
 {
 
@@ -55,32 +57,46 @@ SteppingAction::~SteppingAction()
 
 void SteppingAction::UserSteppingAction( const G4Step *step )
 {
-  if( step->GetTrack()->GetParentID() != 0 ) {
-    G4cout << "SECONDARY!!!!!!" << G4endl; // this message should 
-                                           // never be seen as all secondaries 
-                                           // should already be killed.
-    step->GetTrack()->SetTrackStatus( fKillTrackAndSecondaries );
-    return;
-  }
-  else if( step->GetPostStepPoint()->GetStepStatus() != 1 ) return;
+  G4Track* track = step->GetTrack();
+  G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
+  G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
-  // Save info
-  G4double cur_energy = step->GetTrack()->GetKineticEnergy()/MeV;
-  G4double cur_len    = step->GetTrack()->GetTrackLength()  /cm;
-  if( first_step ) first_step = false;
-  else {
-    auto analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn( 0, 0, cur_energy );                // current energy
-    analysisManager->FillNtupleDColumn( 0, 1, cur_energy - prev_energy );  // delta energy
-    analysisManager->FillNtupleDColumn( 0, 2, cur_len );                   // current track length
-    analysisManager->FillNtupleDColumn( 0, 3, cur_len - prev_len );        // delta track length
-    analysisManager->FillNtupleDColumn( 0, 4, ( cur_energy - prev_energy ) // dEdX
-                                              / ( cur_len - prev_len ) );    
-    analysisManager->AddNtupleRow();
-  }
-
-  prev_energy = cur_energy;
-  prev_len    = cur_len;
+  // if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) { // if primary particle crosses boundary
+  //   G4cout << "Boundary!" << G4endl;
+  //   G4double cur_energy = track->GetKineticEnergy()/MeV;
+  //   G4double cur_len    = track->GetTrackLength()  /cm;
+  //   if( first_step ) 
+  //     first_step = false;
+  //   else {
+  //     // auto analysisManager = G4AnalysisManager::Instance();
+  //     // analysisManager->FillNtupleDColumn( 0, 0, cur_energy );                // current energy
+  //     // analysisManager->FillNtupleDColumn( 0, 1, cur_energy - prev_energy );  // delta energy
+  //     // analysisManager->FillNtupleDColumn( 0, 2, cur_len );                   // current track length
+  //     // analysisManager->FillNtupleDColumn( 0, 3, cur_len - prev_len );        // delta track length
+  //     // analysisManager->FillNtupleDColumn( 0, 4, ( cur_energy - prev_energy ) // dEdX
+  //     //                                           / ( cur_len - prev_len ) );    
+  //     // analysisManager->AddNtupleRow(0);
+  //   }
+  //   prev_energy = cur_energy;
+  //   prev_len    = cur_len;
+  //   return;
+  // }
+  // else if( track->GetParticleDefinition()->GetParticleSubType() == "photon" ){
+  //   G4cout << "Photon!" << G4endl;
+  //   auto analysisManager = G4AnalysisManager::Instance();
+  //   analysisManager->FillNtupleDColumn( 1, 0, prev_energy );
+  //   analysisManager->FillNtupleDColumn( 1, 1, prev_len );
+  //   analysisManager->FillNtupleDColumn( 1, 2, track->GetTotalEnergy() );
+  //   analysisManager->FillNtupleDColumn( 1, 3, acos( track->GetMomentumDirection().x() / ( track->GetMomentumDirection().mag() ) ) );
+  //   analysisManager->AddNtupleRow(1);
+  //   track->SetTrackStatus( fKillTrackAndSecondaries );
+  // }
+  // else {
+    G4cout << "Particle: " << track->GetParticleDefinition()->GetParticleSubType() 
+           << " || Step Status: " << stepPoint_post->GetStepStatus()
+           << " || ParentID: " << track->GetTrackID()
+           << " || KE: " << track->GetKineticEnergy() << G4endl;
+  // }
 }
 
-}
+};

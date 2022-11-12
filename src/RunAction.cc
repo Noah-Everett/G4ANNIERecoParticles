@@ -50,17 +50,24 @@ RunAction::RunAction()
   auto analysisManager = G4AnalysisManager::Instance();
   analysisManager->SetDefaultFileType("root");
   analysisManager->SetVerboseLevel(1);
-  analysisManager->SetFileName("dEdX");
+  analysisManager->SetFileName("G4VtxRecoParticles");
   
   analysisManager->SetNtupleMerging(true);
   analysisManager->OpenFile();
   
-  analysisManager->CreateNtuple("dEdX", "EX");
+  analysisManager->CreateNtuple("G4VtxRecoParticles", "dEdX");
   analysisManager->CreateNtupleDColumn("E");
   analysisManager->CreateNtupleDColumn("dE");
   analysisManager->CreateNtupleDColumn("X");
   analysisManager->CreateNtupleDColumn("dX");
   analysisManager->CreateNtupleDColumn("dEdX");
+  analysisManager->FinishNtuple();
+
+  analysisManager->CreateNtuple("G4VtxRecoParticles", "Photons");
+  analysisManager->CreateNtupleDColumn("Primary_E");
+  analysisManager->CreateNtupleDColumn("Primary_X");
+  analysisManager->CreateNtupleDColumn("Photon_theta");
+  analysisManager->CreateNtupleDColumn("Photon_E");
   analysisManager->FinishNtuple();
 }
 

@@ -49,19 +49,16 @@ StackingAction::~StackingAction()
 G4ClassificationOfNewTrack
 StackingAction::ClassifyNewTrack(const G4Track* track)
 {
-  //keep primary particle
-  if (track->GetParentID() == 0) {
-    // G4cout << "NOT killing" << G4endl;
-    return fUrgent;
-  }
-  else {
-    // G4cout << "killing" << G4endl;
-    return fKill;
-  }
-
-  // //kill secondary neutrino
-  // if (track->GetDefinition() == G4NeutrinoE::NeutrinoE()) return fKill;
-  // else return fUrgent;
+  ////keep primary particle
+  //if (track->GetParentID() == 0) {
+  //  // G4cout << "NOT killing" << G4endl;
+  //  return fUrgent;
+  //}
+  //else {
+  //  // G4cout << "killing" << G4endl;
+  //  return fKill;
+  //}
+  return fUrgent;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

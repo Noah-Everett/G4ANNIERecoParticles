@@ -76,7 +76,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // World
   //
-  G4double size_X=10000*m, size_Y=1*m, size_Z=1*m;
+  G4double size_X=10000*m, size_Y=100*m, size_Z=100*m;
   size_X=100*m;
 
   G4Box* solidWorld =
@@ -102,6 +102,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   // Envelope
   //
   G4double size_dX=0.00001*m;
+  // G4double size_dX=0.1*m; // fast for testing
   G4double x = -size_X/2;
   G4Box* solidEnv =
     new G4Box("Envelope",                    //its name
