@@ -1,6 +1,12 @@
 #include <vector>
 #include <string>
+#include <cmath>
 using std::to_string;
+    
+double c = 2.998e10; // cm/s
+double n_water = 1.333; //
+double n_sci   = 1.500; //
+double m = 105.7; // MeV/c^2
 
 struct gamma {
     double Primary_E;
@@ -9,18 +15,22 @@ struct gamma {
     double Photon_E;
 };
 
-double fct( double x, double* par ) {
-    return x * par[ 0 ];
+double get_cherAngle( double n, double k )
+{
+  double b = sqrt( 1 - pow( m / ( k + m ), 2 ) );
+  if( 1/n > b ){
+    return 0;
+  }
+  double theta = acos( 1 / ( n * b ) );
+  cout << theta << endl;
+  return theta * 180 / M_PI;
 }
 
 void make_hist_E_theta( vector< string > files )
 {
-    gROOT->ForceStyle();
-    // gStyle->SetOptStat(0);
-
     TCanvas* canvas = new TCanvas( "c1", "", 1000, 1000 );
-    // canvas->SetLogy();
     canvas->SetLogz();
+    gStyle->SetOptStat(0);
 
     TChain* tree = new TChain( "G4VtxRecoParticles;2" );
     for( string file : files )
@@ -59,9 +69,25 @@ void make_hist_E_theta( vector< string > files )
         if( temp.Photon_E     < min_Photon_E     ) min_Photon_E     = temp.Photon_E;
     } 
 
-    TH2D* hist = new TH2D( "", ";" "E [MeV];" "#theta_{C} [Deg]", 450, 50, 500, 100, 0, 60 );
+    TH2D* hist = new TH2D( "", ";" "E [MeV];" "#theta [Deg]", 100, 50, 500, 100, 0, 60 );
     for( int i = 0; i < gammas.size(); i++ ) hist->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
-
     canvas->SetRightMargin(0.11);
     hist->Draw("COLZ");
+    double x_delta = 10;
+    double x_start = 50;
+    double x_stop  = 500;
+
+    TGraph* graph = new TGraph( ( x_stop - x_start ) / int( x_delta ) );
+    int i = 0;
+    for( double x = x_start; x <= x_stop; x += x_delta )
+        graph->SetPoint( i++, x, get_cherAngle( n_water, x ) );
+    graph->SetMarkerStyle( 8 );
+    graph->SetLineWidth  ( 3 );
+    graph->SetLineColor  ( kRed );
+    graph->SetMarkerColor( kRed );
+    graph->Draw( "Same" );
+
+    TLegend* legend = new TLegend();
+    legend->AddEntry( graph, "#theta_{C} Analytical Prediction", "l" );
+    legend->Draw("same");
 }
