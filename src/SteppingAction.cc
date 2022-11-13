@@ -61,24 +61,27 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
   G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
+  if( track->GetParentID() == 0 ) {
+    prev_energy = track->GetKineticEnergy()/MeV;
+    prev_len    = track->GetTrackLength()  /cm;
+  }
+
   if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) { // if primary particle crosses boundary
     // G4cout << "Boundary!" << G4endl;
-    G4double cur_energy = track->GetKineticEnergy()/MeV;
-    G4double cur_len    = track->GetTrackLength()  /cm;
     if( first_step ) 
       first_step = false;
     else {
       auto analysisManager = G4AnalysisManager::Instance();
-      analysisManager->FillNtupleDColumn( 0, 0, cur_energy );                // current energy
-      analysisManager->FillNtupleDColumn( 0, 1, cur_energy - prev_energy );  // delta energy
-      analysisManager->FillNtupleDColumn( 0, 2, cur_len );                   // current track length
-      analysisManager->FillNtupleDColumn( 0, 3, cur_len - prev_len );        // delta track length
-      analysisManager->FillNtupleDColumn( 0, 4, ( cur_energy - prev_energy ) // dEdX
-                                                / ( cur_len - prev_len ) );    
+      analysisManager->FillNtupleDColumn( 0, 0, prev_energy );                // current energy
+      analysisManager->FillNtupleDColumn( 0, 1, prev_energy - prev_boundary_energy );  // delta energy
+      analysisManager->FillNtupleDColumn( 0, 2, prev_len );                   // current track length
+      analysisManager->FillNtupleDColumn( 0, 3, prev_len - prev_boundary_len );        // delta track length
+      analysisManager->FillNtupleDColumn( 0, 4, ( prev_energy - prev_boundary_energy ) // dEdX
+                                                / ( prev_len - prev_boundary_len ) );    
       analysisManager->AddNtupleRow(0);
     }
-    prev_energy = cur_energy;
-    prev_len    = cur_len;
+    prev_boundary_energy = prev_energy;
+    prev_boundary_len    = prev_len;
     return;
   }
   else if( track->GetParticleDefinition()->GetParticleSubType() == "photon" ){
@@ -86,8 +89,10 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->FillNtupleDColumn( 1, 0, prev_energy );
     analysisManager->FillNtupleDColumn( 1, 1, prev_len );
-    analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x() / ( track->GetMomentumDirection().mag() ) ) );
-    analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy() );
+    analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) );
+    analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy()/MeV );
+    analysisManager->FillNtupleIColumn( 1, 4, std::hash<std::string>()(track->GetCreatorProcess()->GetProcessName()) );
+    analysisManager->FillNtupleSColumn( 1, 5, track->GetCreatorProcess()->GetProcessName() );
     analysisManager->AddNtupleRow(1);
     track->SetTrackStatus( fKillTrackAndSecondaries );
   }

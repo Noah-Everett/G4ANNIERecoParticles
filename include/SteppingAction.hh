@@ -56,6 +56,8 @@ class SteppingAction : public G4UserSteppingAction
   private:
     EventAction* fEventAction = nullptr;
     RunAction* fRunAction = nullptr;
+    G4double prev_boundary_energy = 0;
+    G4double prev_boundary_len = 0;
     G4double prev_energy = 0;
     G4double prev_len = 0;
     bool first_step = true;

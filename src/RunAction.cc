@@ -68,6 +68,8 @@ RunAction::RunAction()
   analysisManager->CreateNtupleDColumn("Primary_X");
   analysisManager->CreateNtupleDColumn("Photon_theta");
   analysisManager->CreateNtupleDColumn("Photon_E");
+  analysisManager->CreateNtupleIColumn("CreationProcess_int");
+  analysisManager->CreateNtupleSColumn("CreationProcess_string");
   analysisManager->FinishNtuple();
 }
 

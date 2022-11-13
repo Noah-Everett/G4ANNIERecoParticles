@@ -1,22 +1,19 @@
-# Macro file for example B1
-# 
-# Can be run in batch, without graphic
-# or interactively: Idle> /control/execute run1.mac
-#
-# Change the default number of workers (in multi-threading mode) 
-#/run/numberOfThreads 4
-#
-# Initialize kernel
 /run/initialize
-#
-/control/verbose 2
-/run/verbose 2
+
+/control/verbose 0 #2
+/run/verbose 0 #2
 /event/verbose 0
-/tracking/verbose 1
-# 
-# gamma 6 MeV to the direction (0.,0.,1.)
-#
+/tracking/verbose 0 #1
+#/process/verbose 1
+
 /gun/particle e-
-/gun/energy 100 TeV
-#
-/run/beamOn 5
+/gun/energy 500 MeV
+/gun/position 0 0 0
+/gun/direction 1 0 0
+
+/process/activate Cerenkov
+/process/activate Scintillation
+/process/optical/cerenkov/setTrackSecondariesFirst true
+/process/optical/scintillation/setTrackSecondariesFirst true
+
+/run/beamOn 100

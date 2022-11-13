@@ -14,4 +14,4 @@
 /process/activate Cerenkov
 /process/activate Scintillation
 
-/run/beamOn 100
+/run/beamOn 1
