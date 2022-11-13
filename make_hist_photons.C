@@ -92,25 +92,20 @@ void make_hist_photons( vector< string > files )
     cout << "Photon theta = [" << min_Photon_theta << ", " << max_Photon_theta << "]" << endl;
     cout << "Photon E = [" << min_Photon_E << ", " << max_Photon_E << "]" << endl;
 
-    ////////////////////////////////////
-    //// c1 /// E vs Theta /// All /////
-    ////////////////////////////////////
+    ////////////////////////////////////////////////////
+    //// c1 /// E vs Theta /// All /// Normailized /////
+    ////////////////////////////////////////////////////
     TCanvas* canvas_c1 = new TCanvas( "c1", "", 1000, 1000 );
     canvas_c1->SetLogz();
 
-    TH2D* hist_primaryEnergyVsPhotonTheta = new TH2D( "", "Primary Energy vs Cerenkov Photon Angles;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
+    TH2D* hist_primaryEnergyVsPhotonThetaNormalized = new TH2D( "", "Primary Energy vs All Photon Angles Normalized;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
     for( int i = 0; i < gammas.size(); i++ ) 
       // if( gammas[ i ].CreationProcess == 24720245 )
-        hist_primaryEnergyVsPhotonTheta->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
-    canvas_c1->SetRightMargin(0.11);
-    hist_primaryEnergyVsPhotonTheta->Scale(1/double(nParticles));
-    hist_primaryEnergyVsPhotonTheta->Draw("COLZ");
-    hist_primaryEnergyVsPhotonTheta->SaveAs("hist.root");
+        hist_primaryEnergyVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
+    hist_primaryEnergyVsPhotonThetaNormalized->Scale(1/double(nParticles));
+    hist_primaryEnergyVsPhotonThetaNormalized->Draw("COLZ");
+    hist_primaryEnergyVsPhotonThetaNormalized->SaveAs("hist.root");
     addBoarder( canvas_c1 );
-
-    // TF2* fit = new TF2( "fit", fitFunction, 50, 500, 0, 60, 2 );
-    // hist_E->Fit("fit");
-    // fit->Draw("same cont1");
     
     double x_delta = 10;
     double x_start = 50;
@@ -129,56 +124,79 @@ void make_hist_photons( vector< string > files )
     legend->AddEntry( graph, "#theta_{C} Analytical Prediction", "l" );
     legend->Draw("same");
     
-    /////////////////////////////////////////
-    //// c2 /// E vs Theta /// !Cerenkov ////
-    /////////////////////////////////////////
+    /////////////////////////////////////////////////////
+    //// c2 /// E vs Theta /// All /// !Normailized /////
+    /////////////////////////////////////////////////////
     TCanvas* canvas_c2 = new TCanvas( "c2", "", 1000, 1000 );
     canvas_c2->SetLogz();
+
+    TH2D* hist_primaryEnergyVsPhotonThetaNotNormalized = new TH2D( "", "Primary Energy vs All Photon Angles;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
+    for( int i = 0; i < gammas.size(); i++ ) 
+      // if( gammas[ i ].CreationProcess == 24720245 )
+        hist_primaryEnergyVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
+    hist_primaryEnergyVsPhotonThetaNotNormalized->Draw("COLZ");
+    addBoarder( canvas_c2 );
+    graph->Draw( "Same" );
+    legend->Draw("same");
+    
+    /////////////////////////////////////////
+    //// c3 /// E vs Theta /// !Cerenkov ////
+    /////////////////////////////////////////
+    TCanvas* canvas_c3 = new TCanvas( "c3", "", 1000, 1000 );
+    canvas_c3->SetLogz();
     TH2D* hist_primaryEnergyVsPhotonNotThetaC = new TH2D( "", "Primary Energy vs nonCerenkov Photon Angles;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
     for( int i = 0; i < gammas.size(); i++ ) 
       if( gammas[ i ].CreationProcess != 24720245 )
         hist_primaryEnergyVsPhotonNotThetaC->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
     hist_primaryEnergyVsPhotonNotThetaC->Scale(1/double(nParticles));
     hist_primaryEnergyVsPhotonNotThetaC->Draw("COLZ");
-    addBoarder( canvas_c2 );
-
-    ///////////////////////////////////
-    //// c3 /// X vs Theta /// All ////
-    ///////////////////////////////////
-    TCanvas* canvas_c3 = new TCanvas( "c3", "", 1000, 1000 );
-    canvas_c3->SetLogz();
-    TH2D* hist_primaryPositionVsPhotonTheta = new TH2D( "", "Track Length vs All Photon Angles;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
-    for( int i = 0; i < gammas.size(); i++ ) 
-      hist_primaryPositionVsPhotonTheta->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
-    canvas_c3->SetRightMargin(0.11);
-    hist_primaryPositionVsPhotonTheta->Scale(1/double(nParticles));
-    hist_primaryPositionVsPhotonTheta->Draw("COLZ");
     addBoarder( canvas_c3 );
-    
-    /////////////////////////////////////////
-    //// c4 /// X vs Theta /// !Cerenkov ////
-    /////////////////////////////////////////
+
+    //////////////////////////////////////////////////
+    //// c4 /// X vs Theta /// All /// Normalized ////
+    //////////////////////////////////////////////////
     TCanvas* canvas_c4 = new TCanvas( "c4", "", 1000, 1000 );
     canvas_c4->SetLogz();
+    TH2D* hist_primaryPositionVsPhotonThetaNormalized = new TH2D( "", "Track Length vs All Photon Angles Normalized;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
+    for( int i = 0; i < gammas.size(); i++ ) 
+      hist_primaryPositionVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
+    hist_primaryPositionVsPhotonThetaNormalized->Scale(1/double(nParticles));
+    hist_primaryPositionVsPhotonThetaNormalized->Draw("COLZ");
+    addBoarder( canvas_c4 );
+    
+    ///////////////////////////////////////////////////
+    //// c4 /// X vs Theta /// All /// !Normalized ////
+    ///////////////////////////////////////////////////
+    TCanvas* canvas_c5 = new TCanvas( "c5", "", 1000, 1000 );
+    canvas_c5->SetLogz();
+    TH2D* hist_primaryPositionVsPhotonThetaNotNormalized = new TH2D( "", "Track Length vs All Photon Angles;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
+    for( int i = 0; i < gammas.size(); i++ ) 
+      hist_primaryPositionVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
+    hist_primaryPositionVsPhotonThetaNotNormalized->Draw("COLZ");
+    addBoarder( canvas_c5 );
+    
+    /////////////////////////////////////////
+    //// c6 /// X vs Theta /// !Cerenkov ////
+    /////////////////////////////////////////
+    TCanvas* canvas_c6 = new TCanvas( "c6", "", 1000, 1000 );
+    canvas_c6->SetLogz();
     TH2D* hist_primaryPositionVsPhotonNotThetaC = new TH2D( "", "Track Length vs nonCerenkov Photon Angles;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
     for( int i = 0; i < gammas.size(); i++ ) 
       if( gammas[ i ].CreationProcess != 24720245 )
         hist_primaryPositionVsPhotonNotThetaC->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
-    canvas_c4->SetRightMargin(0.11);
     hist_primaryPositionVsPhotonNotThetaC->Scale(1/double(nParticles));
     hist_primaryPositionVsPhotonNotThetaC->Draw("COLZ");
-    addBoarder( canvas_c4 );
+    addBoarder( canvas_c6 );
     
     ///////////////////////////////
-    //// c5 /// X vs E /// All ////
+    //// c7 /// X vs E /// All ////
     ///////////////////////////////
-    TCanvas* canvas_c5 = new TCanvas( "c5", "", 1000, 1000 );
-    canvas_c5->SetLogz();
-    TH2D* hist_primaryPositionVsPhotonEnergy = new TH2D( "", "Track Length vs All Photon Energies;" "x [cm];" "E [eV]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_E, max_Photon_E );
+    TCanvas* canvas_c7 = new TCanvas( "c7", "", 1000, 1000 );
+    canvas_c7->SetLogz();
+    TH2D* hist_primaryPositionVsPhotonEnergyNormalized = new TH2D( "", "Track Length vs All Photon Energies Normalized;" "x [cm];" "E [eV]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_E, max_Photon_E );
     for( int i = 0; i < gammas.size(); i++ ) 
-      hist_primaryPositionVsPhotonEnergy->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_E );
-    canvas_c5->SetRightMargin(0.11);
-    hist_primaryPositionVsPhotonEnergy->Scale(1/double(nParticles));
-    hist_primaryPositionVsPhotonEnergy->Draw("COLZ");
-    addBoarder( canvas_c5 );
+      hist_primaryPositionVsPhotonEnergyNormalized->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_E );
+    hist_primaryPositionVsPhotonEnergyNormalized->Scale(1/double(nParticles));
+    hist_primaryPositionVsPhotonEnergyNormalized->Draw("COLZ");
+    addBoarder( canvas_c7 );
 }
