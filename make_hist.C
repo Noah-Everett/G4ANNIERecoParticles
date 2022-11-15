@@ -7,7 +7,9 @@ int particle = 1; // 0 = muon, 1 = electron
 double c = 2.998e10; // cm/s
 double n_water = 1.333; //
 double n_sci   = 1.500; //
-double m = 105.7; // MeV/c^2
+double m_mu = 105.7; // MeV/c^2
+double m_e = 0.511; // MeV/c^2
+double m = m_e;
 int nBins = 500;
 int nParticles = 1000;
 
@@ -27,7 +29,7 @@ struct step {
     double dEdX;
 };
 
-double get_cherAngle( double n, double k )
+double get_cherAngle( double m, double n, double k )
 {
   double b = sqrt( 1 - pow( m / ( k + m ), 2 ) );
   if( 1/n > b ){
@@ -115,7 +117,7 @@ void make_hist( vector< string > files )
         if( temp_step.X    > max_X                             ) max_X    = temp_step .X   ;
         if( temp_step.X    < min_X                             ) min_X    = temp_step .X   ;
         if( temp_step.dEdX > max_dEdX                          ) max_dEdX = temp_step .dEdX;
-        if( temp_step.dEdX < min_dEdX && temp_step.dEdX > -160 ) min_dEdX = temp_step .dEdX;
+        if( temp_step.dEdX < min_dEdX && temp_step.dEdX > -20  ) min_dEdX = temp_step .dEdX;
         if( temp_step.E    > max_E                             ) max_E    = temp_step .E   ;
         if( temp_step.E    < min_E                             ) min_E    = temp_step .E   ;
     } 
@@ -146,19 +148,19 @@ void make_hist( vector< string > files )
     double x_delta = 10;
     double x_start = 50;
     double x_stop  = 500;
-    TGraph* graph = new TGraph( ( x_stop - x_start ) / int( x_delta ) );
+    TGraph* graph_mu = new TGraph( ( x_stop - x_start ) / int( x_delta ) );
     int i = 0;
     for( double x = x_start; x <= x_stop; x += x_delta )
-        graph->SetPoint( i++, x, get_cherAngle( n_water, x ) );
-    graph->SetMarkerStyle( 8 );
-    graph->SetLineWidth  ( 3 );
-    graph->SetLineColor  ( kRed );
-    graph->SetMarkerColor( kRed );
-    graph->Draw( "Same" );
+        graph_mu->SetPoint( i++, x, get_cherAngle( m, n_water, x ) );
+    graph_mu->SetMarkerStyle( 8 );
+    graph_mu->SetLineWidth  ( 3 );
+    graph_mu->SetLineColor  ( kRed );
+    graph_mu->SetMarkerColor( kRed );
+    graph_mu->Draw( "Same" );
 
-    TLegend* legend = new TLegend();
-    legend->AddEntry( graph, "#theta_{C} Analytical Prediction", "l" );
-    legend->Draw("same");
+    TLegend* legend_mu = new TLegend();
+    legend_mu->AddEntry( graph_mu, "#theta_{C} Analytical Prediction", "l" );
+    legend_mu->Draw("same");
     
     /////////////////////////////////////////////////////
     //// c2 /// E vs Theta /// All /// !Normailized /////
@@ -171,8 +173,23 @@ void make_hist( vector< string > files )
         hist_primaryEnergyVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
     hist_primaryEnergyVsPhotonThetaNotNormalized->Draw("COLZ");
     addBoarder( canvas_c2 );
-    graph->Draw( "Same" );
-    legend->Draw("same");
+
+    x_delta = 10;
+    x_start = 50;
+    x_stop  = 500;
+    TGraph* graph_e = new TGraph( ( x_stop - x_start ) / int( x_delta ) );
+    i = 0;
+    for( double x = x_start; x <= x_stop; x += x_delta )
+        graph_e->SetPoint( i++, x, get_cherAngle( m_e, n_water, x ) );
+    graph_e->SetMarkerStyle( 8 );
+    graph_e->SetLineWidth  ( 3 );
+    graph_e->SetLineColor  ( kRed );
+    graph_e->SetMarkerColor( kRed );
+    graph_e->Draw( "Same" );
+
+    TLegend* legend_e = new TLegend();
+    legend_e->AddEntry( graph_e, "#theta_{C} Analytical Prediction", "l" );
+    legend_e->Draw("same");
     
     /////////////////////////////////////////
     //// c3 /// E vs Theta /// !Cerenkov ////
@@ -258,4 +275,15 @@ void make_hist( vector< string > files )
       hist_XVsdEdX->Fill( steps[ i ].X, steps[ i ].dEdX );
     hist_XVsdEdX->Draw("COLZ");
     addBoarder( canvas_c9 );
+    
+    //////////////////////////
+    //// c10 /// X vs dEdX ////
+    //////////////////////////
+    TCanvas* canvas_c10 = new TCanvas( "c10", "", 1000, 1000 );
+    canvas_c10->SetLogz();
+    TH2D* hist_EVsdEdX = new TH2D( "", "Energy vs dEdX;" "E [MeV];" "dEdX [MeV/cm]", nBins, min_E, max_E, nBins, min_dEdX, max_dEdX );
+    for( int i = 0; i < gammas.size(); i++ ) 
+      hist_EVsdEdX->Fill( steps[ i ].E, steps[ i ].dEdX );
+    hist_EVsdEdX->Draw("COLZ");
+    addBoarder( canvas_c10 );
 }

@@ -7,7 +7,7 @@
 #/process/verbose 1
 
 /gun/particle e-
-/gun/energy 500 MeV
+/gun/energy 300 MeV
 /gun/position 0 0 0
 /gun/direction 1 0 0
 
@@ -16,4 +16,4 @@
 /process/optical/cerenkov/setTrackSecondariesFirst true
 /process/optical/scintillation/setTrackSecondariesFirst true
 
-/run/beamOn 1000
+/run/beamOn 1

@@ -2,13 +2,6 @@
 #include <string>
 using std::to_string;
 
-struct step {
-    double X;
-    double dX;
-    double E;
-    double dE;
-    double dEdX;
-};
 
 // double fitFct( double *x, double *par ) {
 //     return par[0]+par[1]*x[0]+par[2]*x[0]*x[0];
@@ -31,16 +24,7 @@ void make_hist_dEdX_X( vector< string > files )
     step temp;
 
     // Used to determine hist limits
-    double max_X = -1;
-    double min_X = -1;
-    double max_dEdX = -1;
-    double min_dEdX = -1;
 
-    tree->SetBranchAddress( "X", &temp.X );
-    tree->SetBranchAddress( "dX", &temp.dX );
-    tree->SetBranchAddress( "E", &temp.E );
-    tree->SetBranchAddress( "dE", &temp.dE );
-    tree->SetBranchAddress( "dEdX", &temp.dEdX );
 
     for( Int_t i = 0; i < tree->GetEntries(); i++ ) {
         tree->GetEntry( i );

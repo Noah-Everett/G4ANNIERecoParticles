@@ -31,10 +31,6 @@ void make_hist_dEdX_E( vector< string > files )
     step temp;
 
     // Used to determine hist limits
-    double max_E = -1;
-    double min_E = -1;
-    double max_dEdX = -1;
-    double min_dEdX = -1;
 
     tree->SetBranchAddress( "X", &temp.X );
     tree->SetBranchAddress( "dX", &temp.dX );

@@ -66,7 +66,7 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     prev_len    = track->GetTrackLength()  /cm;
   }
 
-  if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) { // if primary particle crosses boundary
+  if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) { // Save primary info if crossing border
     // G4cout << "Boundary!" << G4endl;
     if( first_step ) 
       first_step = false;
@@ -84,7 +84,7 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     prev_boundary_len    = prev_len;
     return;
   }
-  else if( track->GetParticleDefinition()->GetParticleSubType() == "photon" ){
+  else if( track->GetParticleDefinition()->GetParticleSubType() == "photon" ){ // Save photon info then kill
     // G4cout << "Photon!" << G4endl;
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->FillNtupleDColumn( 1, 0, prev_energy );
@@ -96,7 +96,7 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     analysisManager->AddNtupleRow(1);
     track->SetTrackStatus( fKillTrackAndSecondaries );
   }
-  else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 ||
+  else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 || // Kill neutrinos
            track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
            track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
            track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
