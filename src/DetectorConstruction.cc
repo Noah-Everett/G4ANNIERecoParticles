@@ -85,9 +85,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   //
   // Envelope
   //
-  G4double size_dX=0.00001*m;
+  G4double size_dX=0.00001*m; // for real runs (10um)
   // G4double size_dX=size_X;
-  // G4double size_dX=1*m; // fast for testing
+  //G4double size_dX=1*m; // fast for testing
   G4double x = -size_X/2;
   G4Box* solidEnv =
     new G4Box("Envelope",                    //its name

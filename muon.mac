@@ -7,7 +7,7 @@
 #/process/verbose 1
 
 /gun/particle mu-
-/gun/energy 10 MeV
+/gun/energy 300 MeV
 /gun/position 0 0 0
 /gun/direction 1 0 0
 
