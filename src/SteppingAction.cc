@@ -30,6 +30,7 @@
 #include "SteppingAction.hh"
 #include "EventAction.hh"
 #include "DetectorConstruction.hh"
+#include "Maps.hh"
 
 #include "G4Step.hh"
 #include "G4Event.hh"
@@ -61,58 +62,80 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
   G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
-  if( track->GetParentID() == 0 ) {
-    prev_energy = track->GetKineticEnergy()/MeV;
-    prev_len    = track->GetTrackLength()  /cm;
-  }
-
-  if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) { // Save primary info if crossing border
-    // G4cout << "Boundary!" << G4endl;
-    if( first_step ) 
-      first_step = false;
-    else {
+  if( first_step ){
       auto analysisManager = G4AnalysisManager::Instance();
-      analysisManager->FillNtupleDColumn( 0, 0, prev_energy );                // current energy
-      analysisManager->FillNtupleDColumn( 0, 1, prev_energy - prev_boundary_energy );  // delta energy
-      analysisManager->FillNtupleDColumn( 0, 2, prev_len );                   // current track length
-      analysisManager->FillNtupleDColumn( 0, 3, prev_len - prev_boundary_len );        // delta track length
-      analysisManager->FillNtupleDColumn( 0, 4, ( prev_energy - prev_boundary_energy ) // dEdX
-                                                / ( prev_len - prev_boundary_len ) );    
-      analysisManager->AddNtupleRow(0);
-    }
-    prev_boundary_energy = prev_energy;
-    prev_boundary_len    = prev_len;
-    return;
+      int size = ( map_process.size() > map_particle.size() ) ? map_process.size() : map_particle.size();
+      for( int i = 0; i < size; i++, analysisManager->AddNtupleRow( 2 ) ){
+          int j = 0;
+          for( auto it = map_process.begin(); j < size; it++, j++ ){
+              if( j == size - 1 && it != map_process.end() )
+                  analysisManager->FillNtupleSColumn( 2, 0, it->first );
+              else if( j == size - 1 )
+                  analysisManager->FillNtupleSColumn( 2, 0, "None" );
+          }
+          j = 0;
+          for( auto it = map_particle.begin(); j < size; it++, j++ ){
+              if( j == size - 1 && it != map_particle.end() )
+                  analysisManager->FillNtupleSColumn( 2, 1, it->first );
+              else if( j == size - 1 )
+                  analysisManager->FillNtupleSColumn( 2, 1, "None" );
+          }
+      }
   }
-  else if( track->GetParticleDefinition()->GetParticleSubType() == "photon" ){ // Save photon info then kill
-    // G4cout << "Photon!" << G4endl;
+ 
+  // if not photon
+  if( track->GetParticleDefinition()->GetParticleSubType() != "photon" ){
+    prev_particle = track->GetParticleDefinition()->GetParticleSubType();
+  } 
+  // if photon
+  else {
     auto analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn( 1, 0, prev_energy );
-    analysisManager->FillNtupleDColumn( 1, 1, prev_len );
+    analysisManager->FillNtupleDColumn( 1, 0, track->GetKineticEnergy()/MeV );
+    analysisManager->FillNtupleDColumn( 1, 1, track->GetTrackLength()/cm );
     analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) );
     analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy()/MeV );
-    analysisManager->FillNtupleIColumn( 1, 4, std::hash<std::string>()(track->GetCreatorProcess()->GetProcessName()) );
-    analysisManager->FillNtupleSColumn( 1, 5, track->GetCreatorProcess()->GetProcessName() );
-    analysisManager->AddNtupleRow(1);
+    if( map_process.find( track->GetCreatorProcess()->GetProcessName() ) != map_process.end() )
+        analysisManager->FillNtupleIColumn( 1, 4, map_process.at( track->GetCreatorProcess()->GetProcessName() ) );
+    else {
+        G4cout << "Not in map_process: " << track->GetCreatorProcess()->GetProcessName() << G4endl;
+        analysisManager->FillNtupleIColumn( 1, 4, -999999 );
+    }
+    if( map_particle.find( prev_particle ) != map_particle.end() )
+        analysisManager->FillNtupleIColumn( 1, 5, map_particle.at( prev_particle ) );
+    else {
+        G4cout << "Not in map_particle: " << prev_particle << G4endl;
+        analysisManager->FillNtupleIColumn( 1, 5, -999999 );
+    }
+    analysisManager->AddNtupleRow( 1 );
     track->SetTrackStatus( fKillTrackAndSecondaries );
   }
+
+  // if primary particle and crossing boundary
+  if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) {
+    if( first_step ) first_step = false;
+    else {
+      auto analysisManager = G4AnalysisManager::Instance();
+      analysisManager->FillNtupleDColumn( 0, 0, track->GetKineticEnergy()/MeV );                         // current energy
+      analysisManager->FillNtupleDColumn( 0, 1, track->GetKineticEnergy()/MeV - prev_boundary_energy );  // delta energy
+      analysisManager->FillNtupleDColumn( 0, 2, track->GetTrackLength()/cm );                            // current track length
+      analysisManager->FillNtupleDColumn( 0, 3, track->GetTrackLength()/cm - prev_boundary_len );        // delta track length
+      analysisManager->FillNtupleDColumn( 0, 4, ( track->GetKineticEnergy()/MeV - prev_boundary_energy ) // dEdX
+                                                / ( track->GetTrackLength()/cm - prev_boundary_len ) );    
+      analysisManager->AddNtupleRow( 0 );
+    }
+    prev_boundary_energy = track->GetKineticEnergy()/MeV;
+    prev_boundary_len    = track->GetTrackLength()/cm;
+  } 
+  // if neutrino
   else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 || // Kill neutrinos
-           track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
-           track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
-           track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
-           track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
-           track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
-           track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
-           track->GetParticleDefinition()->GetPDGEncoding() == -18 ){
-           track->SetTrackStatus( fKillTrackAndSecondaries );
-  }
-  else if( track->GetParentID() != 0 ){
-    // G4cout << "Particle: " << track->GetParticleDefinition()->GetParticleName() 
-    //        << " || PDG: " << track->GetParticleDefinition()->GetPDGEncoding()
-    //        << " || Step Status: " << stepPoint_post->GetStepStatus()
-    //        << " || ParentID: " << track->GetParentID()
-    //        << " || KE: " << track->GetKineticEnergy()
-    //        << " || Volume: " << track->GetVolume()->GetName() << G4endl;
+    track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
+    track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
+    track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
+    track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
+    track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
+    track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
+    track->GetParticleDefinition()->GetPDGEncoding() == -18 ){
+    track->SetTrackStatus( fKillTrackAndSecondaries );
   }
 }
 

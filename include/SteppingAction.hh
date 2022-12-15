@@ -52,17 +52,25 @@ class SteppingAction : public G4UserSteppingAction
 
     // method from the base class
     void UserSteppingAction(const G4Step*) override;
+    
+    std::map< G4String, int > map_process = { { "Cerenkov", 0 },
+                                              { "eBrem"   , 1 },
+                                              { "muMinusCaptureAtRest" , 2 },
+                                              { "neutronInelastic", 3 } };
+    std::map< G4String, int > map_particle = { { "mu", 0 },
+                                               { "e" , 1 },
+                                               { "generic", 2 },
+                                               { "static", 3 },
+                                               { "nucleon", 4 } };
 
   private:
     EventAction* fEventAction = nullptr;
     RunAction* fRunAction = nullptr;
     G4double prev_boundary_energy = 0;
     G4double prev_boundary_len = 0;
-    G4double prev_energy = 0;
-    G4double prev_len = 0;
+    G4String prev_particle;
     bool first_step = true;
 };
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

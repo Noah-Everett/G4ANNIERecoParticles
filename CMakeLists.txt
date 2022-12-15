@@ -35,8 +35,8 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(G4VtxRecoParticles G4VtxRecoParticles.cc ${sources} ${headers})
-target_link_libraries(G4VtxRecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+add_executable(G4ANNIERecoParticles G4ANNIERecoParticles.cc ${sources} ${headers})
+target_link_libraries(G4ANNIERecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
@@ -62,9 +62,9 @@ endforeach()
 # For internal Geant4 use - but has no effect if you build this
 # example standalone
 #
-add_custom_target(SP DEPENDS G4VtxRecoParticles)
+add_custom_target(SP DEPENDS G4ANNIERecoParticles)
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-install(TARGETS G4VtxRecoParticles DESTINATION bin)
+install(TARGETS G4ANNIERecoParticles DESTINATION bin)

@@ -30,7 +30,8 @@
 #include "RunAction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "DetectorConstruction.hh"
-// #include "Run.hh"
+#include "SteppingAction.hh"
+#include "Maps.hh"
 
 #include "G4RunManager.hh"
 #include "G4Run.hh"
@@ -39,6 +40,8 @@
 #include "G4LogicalVolume.hh"
 #include "G4UnitsTable.hh"
 #include "G4SystemOfUnits.hh"
+
+#include <map>
 
 namespace B1
 {
@@ -50,12 +53,12 @@ RunAction::RunAction()
   auto analysisManager = G4AnalysisManager::Instance();
   analysisManager->SetDefaultFileType("root");
   analysisManager->SetVerboseLevel(1);
-  analysisManager->SetFileName("G4VtxRecoParticles");
+  analysisManager->SetFileName("G4ANNIERecoParticles");
   
   analysisManager->SetNtupleMerging(true);
   analysisManager->OpenFile();
   
-  analysisManager->CreateNtuple("G4VtxRecoParticles", "dEdX");
+  analysisManager->CreateNtuple("G4ANNIERecoParticles", "dEdX");
   analysisManager->CreateNtupleDColumn("E");
   analysisManager->CreateNtupleDColumn("dE");
   analysisManager->CreateNtupleDColumn("X");
@@ -63,14 +66,21 @@ RunAction::RunAction()
   analysisManager->CreateNtupleDColumn("dEdX");
   analysisManager->FinishNtuple();
 
-  analysisManager->CreateNtuple("G4VtxRecoParticles", "Photons");
+  analysisManager->CreateNtuple("G4ANNIERecoParticles", "Photons");
   analysisManager->CreateNtupleDColumn("Primary_E");
   analysisManager->CreateNtupleDColumn("Primary_X");
   analysisManager->CreateNtupleDColumn("Photon_theta");
   analysisManager->CreateNtupleDColumn("Photon_E");
-  analysisManager->CreateNtupleIColumn("CreationProcess_int");
-  analysisManager->CreateNtupleSColumn("CreationProcess_string");
+  analysisManager->CreateNtupleIColumn("CreationProcess");
+  analysisManager->CreateNtupleIColumn("ParentParticle");
   analysisManager->FinishNtuple();
+  
+  analysisManager->CreateNtuple("G4ANNIERecoParticles", "MapProcess");
+  analysisManager->CreateNtupleSColumn("Process");
+  analysisManager->CreateNtupleSColumn("Particle");
+  analysisManager->FinishNtuple();
+  
+
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -83,10 +93,6 @@ RunAction::~RunAction()
 
 void RunAction::BeginOfRunAction(const G4Run*)
 {
-  // inform the runManager to save random number seed
-  // G4RunManager::GetRunManager()->SetRandomNumberStore(false);
-  // auto analysisManager = G4AnalysisManager::Instance();
-  // analysisManager->Reset();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -94,11 +100,6 @@ void RunAction::BeginOfRunAction(const G4Run*)
 void RunAction::EndOfRunAction(const G4Run* run)
 {
   auto analysisManager = G4AnalysisManager::Instance();
-  // std::vector< G4double > temp_dEs = dEs, temp_dxs = dxs;
-  // analysisManager->CreateH2("dEdx","",
-  //                           dxs, dEs,
-  //                           "none", "none",
-  //                           "none", "none");
   analysisManager->Write();
   analysisManager->CloseFile();
 }
