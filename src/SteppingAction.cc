@@ -62,27 +62,6 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
   G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
-  if( first_step ){
-      auto analysisManager = G4AnalysisManager::Instance();
-      int size = ( map_process.size() > map_particle.size() ) ? map_process.size() : map_particle.size();
-      for( int i = 0; i < size; i++, analysisManager->AddNtupleRow( 2 ) ){
-          int j = 0;
-          for( auto it = map_process.begin(); j < size; it++, j++ ){
-              if( j == size - 1 && it != map_process.end() )
-                  analysisManager->FillNtupleSColumn( 2, 0, it->first );
-              else if( j == size - 1 )
-                  analysisManager->FillNtupleSColumn( 2, 0, "None" );
-          }
-          j = 0;
-          for( auto it = map_particle.begin(); j < size; it++, j++ ){
-              if( j == size - 1 && it != map_particle.end() )
-                  analysisManager->FillNtupleSColumn( 2, 1, it->first );
-              else if( j == size - 1 )
-                  analysisManager->FillNtupleSColumn( 2, 1, "None" );
-          }
-      }
-  }
- 
   // if not photon
   if( track->GetParticleDefinition()->GetParticleSubType() != "photon" ){
     prev_particle = track->GetParticleDefinition()->GetParticleSubType();

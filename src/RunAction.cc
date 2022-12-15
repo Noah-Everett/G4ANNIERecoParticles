@@ -74,13 +74,6 @@ RunAction::RunAction()
   analysisManager->CreateNtupleIColumn("CreationProcess");
   analysisManager->CreateNtupleIColumn("ParentParticle");
   analysisManager->FinishNtuple();
-  
-  analysisManager->CreateNtuple("G4ANNIERecoParticles", "MapProcess");
-  analysisManager->CreateNtupleSColumn("Process");
-  analysisManager->CreateNtupleSColumn("Particle");
-  analysisManager->FinishNtuple();
-  
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
