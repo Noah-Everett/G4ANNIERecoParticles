@@ -22,19 +22,15 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file ActionInitialization.hh
-/// \brief Definition of the B1::ActionInitialization class
 
-#ifndef B1ActionInitialization_h
-#define B1ActionInitialization_h 1
+#ifndef ActionInitialization_h
+#define ActionInitialization_h
 
 #include "G4VUserActionInitialization.hh"
 
 /// Action initialization class.
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 class ActionInitialization : public G4VUserActionInitialization

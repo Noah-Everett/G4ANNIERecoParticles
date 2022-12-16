@@ -25,7 +25,7 @@
 //
 //
 /// \file SteppingAction.cc
-/// \brief Implementation of the B1::SteppingAction class
+/// \brief Implementation of the ANNIERecoParticles::SteppingAction class
 
 #include "SteppingAction.hh"
 #include "EventAction.hh"
@@ -40,7 +40,7 @@
 
 #include<cmath>
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -106,14 +106,14 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     prev_boundary_len    = track->GetTrackLength()/cm;
   } 
   // if neutrino
-  else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 || // Kill neutrinos
-    track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
-    track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
-    track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
-    track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
-    track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
-    track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
-    track->GetParticleDefinition()->GetPDGEncoding() == -18 ){
+  else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 ||
+           track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
+           track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
+           track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
+           track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
+           track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
+           track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
+           track->GetParticleDefinition()->GetPDGEncoding() == -18 ) {
     track->SetTrackStatus( fKillTrackAndSecondaries );
   }
 }

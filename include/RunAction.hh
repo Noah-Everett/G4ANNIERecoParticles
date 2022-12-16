@@ -22,13 +22,9 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file RunAction.hh
-/// \brief Definition of the B1::RunAction class
 
-#ifndef B1RunAction_h
-#define B1RunAction_h 1
+#ifndef RunAction_h
+#define RunAction_h
 
 #include "G4UserRunAction.hh"
 #include "G4Accumulable.hh"
@@ -45,7 +41,7 @@ class G4Run;
 /// from the energy deposit accumulated via stepping and event actions.
 /// The computed dose is then printed on the screen.
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 class RunAction : public G4UserRunAction

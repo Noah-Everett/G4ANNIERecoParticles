@@ -40,17 +40,18 @@ target_link_libraries(G4ANNIERecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
-# build B1. This is so that we can run the executable directly because it
+# build. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
 #
-set(EXAMPLEB1_SCRIPTS
+set(SCRIPTS
   init_vis.mac
   muon.mac
   electron.mac
   vis.mac
+  detector.mac
   )
 
-foreach(_script ${EXAMPLEB1_SCRIPTS})
+foreach(_script ${SCRIPTS})
   configure_file(
     ${PROJECT_SOURCE_DIR}/${_script}
     ${PROJECT_BINARY_DIR}/${_script}

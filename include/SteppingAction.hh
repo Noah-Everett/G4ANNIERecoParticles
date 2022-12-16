@@ -22,13 +22,9 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file SteppingAction.hh
-/// \brief Definition of the B1::SteppingAction class
 
-#ifndef B1SteppingAction_h
-#define B1SteppingAction_h 1
+#ifndef SteppingAction_h
+#define SteppingAction_h
 
 #include "G4UserSteppingAction.hh"
 #include "globals.hh"
@@ -39,7 +35,7 @@ class G4LogicalVolume;
 /// Stepping action class
 ///
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 class EventAction;

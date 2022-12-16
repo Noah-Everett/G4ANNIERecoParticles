@@ -25,7 +25,7 @@
 //
 //
 /// \file RunAction.cc
-/// \brief Implementation of the B1::RunAction class
+/// \brief Implementation of the ANNIERecoParticles::RunAction class
 
 #include "RunAction.hh"
 #include "PrimaryGeneratorAction.hh"
@@ -43,7 +43,7 @@
 
 #include <map>
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

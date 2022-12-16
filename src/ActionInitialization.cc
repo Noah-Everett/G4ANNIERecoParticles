@@ -25,7 +25,7 @@
 //
 //
 /// \file ActionInitialization.cc
-/// \brief Implementation of the B1::ActionInitialization class
+/// \brief Implementation of the ANNIERecoParticles::ActionInitialization class
 
 #include "ActionInitialization.hh"
 #include "PrimaryGeneratorAction.hh"
@@ -34,7 +34,7 @@
 #include "SteppingAction.hh"
 #include "StackingAction.hh"
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

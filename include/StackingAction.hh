@@ -22,18 +22,14 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file StackingAction.hh
-/// \brief Definition of the B3::StackingAction class
 
-#ifndef B1StackingAction_h
-#define B1StackingAction_h 1
+#ifndef StackingAction_h
+#define StackingAction_h
 
 #include "G4UserStackingAction.hh"
 #include "globals.hh"
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 /// Stacking action class : manage the newly generated particles

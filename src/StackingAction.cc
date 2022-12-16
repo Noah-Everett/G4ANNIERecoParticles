@@ -31,7 +31,7 @@
 
 #include "G4Track.hh"
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

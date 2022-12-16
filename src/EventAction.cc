@@ -25,7 +25,7 @@
 //
 //
 /// \file EventAction.cc
-/// \brief Implementation of the B1::EventAction class
+/// \brief Implementation of the ANNIERecoParticles::EventAction class
 
 #include "EventAction.hh"
 #include "RunAction.hh"
@@ -33,7 +33,7 @@
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

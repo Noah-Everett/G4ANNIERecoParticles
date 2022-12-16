@@ -22,10 +22,6 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file DetectorConstruction.cc
-/// \brief Implementation of the B1::DetectorConstruction class
 
 #include "DetectorConstruction.hh"
 
@@ -40,78 +36,42 @@
 #include "G4PVPlacement.hh"
 #include "G4SystemOfUnits.hh"
 
-using std::to_string;
 #include<string>
+using std::to_string;
 using std::string;
 
-namespace B1
+namespace ANNIERecoParticles
 {
-DetectorConstruction::DetectorConstruction(){}
-DetectorConstruction::~DetectorConstruction(){}
+
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-  G4NistManager* nist = G4NistManager::Instance();
+  ConstructMaterials();
+  
+  G4bool checkOverlaps = true;
+  G4double size_X=100*m, size_Y=100*m, size_Z=100*m;
 
-  G4Material* water = nist->FindOrBuildMaterial("G4_WATER");
-  G4MaterialPropertiesTable* water_materialPropertiesTable = new G4MaterialPropertiesTable();
-  G4double water_materialPropertiesTable_energies[4] = {2.00*eV,2.87*eV,2.90*eV,3.47*eV};
-  G4double water_materialPropertiesTable_rindices[4] = {1.333,1.333,1.333,1.333};
-  water_materialPropertiesTable->AddProperty("RINDEX", water_materialPropertiesTable_energies, water_materialPropertiesTable_rindices, 4 );
-  water->SetMaterialPropertiesTable(water_materialPropertiesTable);
+  G4Material* material = G4Material::GetMaterial( m_parameterParser->get_material() );
 
+  G4Box* world_s = new G4Box( "World", size_X, size_Y, size_Z );
+  G4LogicalVolume  * world_lv = new G4LogicalVolume( world_s, material, "World" );
+  G4VPhysicalVolume* world_pv = new G4PVPlacement( 0, G4ThreeVector(0,0,0), world_lv, "World", 0, false, 0, checkOverlaps);
 
-  G4bool checkOverlaps = false;// true;
+  G4double size_dX;
+  if( m_parameterParser->get_record_dEdX() ){
+    size_dX = 0.00001 * m; // for real runs (10um)
+    G4cout << "yes" << G4endl;}
+  else
+    size_dX = size_X; // one volume
 
-  G4double size_X=10000*m, size_Y=100*m, size_Z=100*m;
-  size_X=100*m;
-
-  G4Box* solidWorld = new G4Box("World", size_X,size_Y,size_Z);
-
-  G4LogicalVolume* logicWorld =
-    new G4LogicalVolume(solidWorld,          //its solid
-                        water,           //its material
-                        "World");            //its name
-
-  G4VPhysicalVolume* physWorld =
-    new G4PVPlacement(0,                     //no rotation
-                      G4ThreeVector(0,0,0),       //at (0,0,0)
-                      logicWorld,            //its logical volume
-                      "World",               //its name
-                      0,                     //its mother  volume
-                      false,                 //no boolean operation
-                      0,                     //copy number
-                      checkOverlaps);        //overlaps checking
-
-  //
-  // Envelope
-  //
-  //G4double size_dX=0.00001*m; // for real runs (10um)
-  G4double size_dX=size_X;
-  //G4double size_dX=1*m; // fast for testing
   G4double x = -size_X/2;
-  G4Box* solidEnv =
-    new G4Box("Envelope",                    //its name
-        size_dX/2, size_Y, size_Z); //its size
+  G4Box* material_s = new G4Box( "material", size_dX/2, size_Y, size_Z );
 
-  G4LogicalVolume* logicEnv =
-    new G4LogicalVolume(solidEnv,            //its solid
-                        water,             //its material
-                        "Envelope");         //its name
+  G4LogicalVolume* material_lv = new G4LogicalVolume( material_s, material, "material" );
 
-  for( int i = 0; i < size_X/size_dX;i++){
-  x+=size_dX;
-  string name = "Envelope_" + to_string( i );
-  new G4PVPlacement(0,                       //no rotation
-                    G4ThreeVector(x,0,0),         //at (0,0,0)
-                    logicEnv,                //its logical volume
-                    name.c_str(),              //its name
-                    logicWorld,              //its mother  volume
-                    false,                   //no boolean operation
-                    0,                       //copy number
-                    checkOverlaps);          //overlaps checking
-                    }
+  for( int i = 0; i < size_X / size_dX; i++, x += size_dX )
+    new G4PVPlacement( 0, G4ThreeVector( x, 0, 0 ), material_lv, "material", world_lv, true, i, checkOverlaps );
 
-  return physWorld;
+  return world_pv;
 }
 
 }

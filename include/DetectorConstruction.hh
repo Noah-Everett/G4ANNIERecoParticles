@@ -22,37 +22,34 @@
 // * use  in  resulting  scientific  publications,  and indicate your *
 // * acceptance of all terms of the Geant4 Software license.          *
 // ********************************************************************
-//
-//
-/// \file DetectorConstruction.hh
-/// \brief Definition of the B1::DetectorConstruction class
 
-#ifndef B1DetectorConstruction_h
-#define B1DetectorConstruction_h 1
+#ifndef DetectorConstruction_h
+#define DetectorConstruction_h
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
+
+#include "ParameterParser.hh"
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;
 
 /// Detector construction class to define materials and geometry.
 
-namespace B1
+namespace ANNIERecoParticles
 {
 
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
-    DetectorConstruction();
-    ~DetectorConstruction() override;
+    DetectorConstruction( ParameterParser* t_parameterParser ){ m_parameterParser = t_parameterParser; }
+   ~DetectorConstruction(){ delete m_parameterParser; }
 
+    void ConstructMaterials();
     G4VPhysicalVolume* Construct() override;
 
-    G4LogicalVolume* GetScoringVolume() const { return fScoringVolume; }
-
   protected:
-    G4LogicalVolume* fScoringVolume = nullptr;
+    ParameterParser* m_parameterParser;
 };
 
 }
