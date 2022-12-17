@@ -30,6 +30,8 @@
 #include "globals.hh"
 #include "RunAction.hh"
 
+#include "ParameterParser.hh"
+
 class G4LogicalVolume;
 
 /// Stepping action class
@@ -43,27 +45,20 @@ class EventAction;
 class SteppingAction : public G4UserSteppingAction
 {
   public:
-    SteppingAction(EventAction* eventAction, RunAction* runAction);
+    SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser );
     ~SteppingAction() override;
 
     // method from the base class
     void UserSteppingAction(const G4Step*) override;
     
-    std::map< G4String, int > map_process = { { "Cerenkov", 0 },
-                                              { "eBrem"   , 1 },
-                                              { "muMinusCaptureAtRest" , 2 },
-                                              { "neutronInelastic", 3 } };
-    std::map< G4String, int > map_particle = { { "mu", 0 },
-                                               { "e" , 1 },
-                                               { "generic", 2 },
-                                               { "static", 3 },
-                                               { "nucleon", 4 } };
-
   private:
-    EventAction* fEventAction = nullptr;
-    RunAction* fRunAction = nullptr;
+    EventAction* m_eventAction = nullptr;
+    RunAction* m_runAction = nullptr;
+    ParameterParser* m_parameterParser = nullptr;
     G4double prev_boundary_energy = 0;
     G4double prev_boundary_len = 0;
+    G4double prev_len = 0;
+    G4double prev_ke = 0;
     G4String prev_particle;
     bool first_step = true;
 };

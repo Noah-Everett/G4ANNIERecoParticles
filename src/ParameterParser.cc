@@ -6,7 +6,7 @@ namespace ANNIERecoParticles
 ParameterParser::ParameterParser() {
   m_parameter_material = new G4UIcmdWithAString( "/ANNIERecoParticles/material", this );
   m_parameter_material->SetDefaultValue( "water" );
-  m_parameter_material->SetCandidates( "water water_doped WbLS tankSteel MRDIron" );
+  m_parameter_material->SetCandidates( "water water_basic water_doped WbLS tankSteel MRDIron" );
 
   m_parameter_record_dEdX = new G4UIcmdWithABool( "/ANNIERecoParticles/record/dEdX", this );
   m_parameter_record_dEdX->SetDefaultValue( false );

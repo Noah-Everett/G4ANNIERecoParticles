@@ -45,8 +45,8 @@ namespace ANNIERecoParticles
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction(EventAction* eventAction, RunAction* runAction)
-: fEventAction(eventAction), fRunAction(runAction)
+SteppingAction::SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser )
+: m_eventAction(eventAction), m_runAction(runAction), m_parameterParser{ t_parameterParser }
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -62,16 +62,20 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
   G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
+  // if primary
+  if( m_parameterParser->get_record_gammas() && track->GetParentID() == 0 ) {
+    prev_len = track->GetTrackLength()/cm;
+    prev_ke  = track->GetKineticEnergy()/MeV;
+  }
   // if not photon
-  if( track->GetParticleDefinition()->GetParticleSubType() != "photon" ){
+  if( m_parameterParser->get_record_gammas() && track->GetParticleDefinition()->GetParticleSubType() != "photon" )
     prev_particle = track->GetParticleDefinition()->GetParticleSubType();
-  } 
   // if photon
-  else {
+  else if( m_parameterParser->get_record_gammas() ) {
     auto analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn( 1, 0, track->GetKineticEnergy()/MeV );
-    analysisManager->FillNtupleDColumn( 1, 1, track->GetTrackLength()/cm );
-    analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) );
+    analysisManager->FillNtupleDColumn( 1, 0, prev_len );
+    analysisManager->FillNtupleDColumn( 1, 1, prev_ke );
+    analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) / M_PI * 180 );
     analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy()/MeV );
     if( map_process.find( track->GetCreatorProcess()->GetProcessName() ) != map_process.end() )
         analysisManager->FillNtupleIColumn( 1, 4, map_process.at( track->GetCreatorProcess()->GetProcessName() ) );
@@ -90,7 +94,7 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   }
 
   // if primary particle and crossing boundary
-  if( track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) {
+  if( m_parameterParser->get_record_dEdX() && track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) {
     if( first_step ) first_step = false;
     else {
       auto analysisManager = G4AnalysisManager::Instance();

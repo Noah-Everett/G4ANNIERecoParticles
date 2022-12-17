@@ -26,6 +26,8 @@
 #ifndef ActionInitialization_h
 #define ActionInitialization_h
 
+#include "ParameterParser.hh"
+
 #include "G4VUserActionInitialization.hh"
 
 /// Action initialization class.
@@ -36,11 +38,14 @@ namespace ANNIERecoParticles
 class ActionInitialization : public G4VUserActionInitialization
 {
   public:
-    ActionInitialization();
-    ~ActionInitialization() override;
+    ActionInitialization( ParameterParser* t_parameterParser ) : m_parameterParser{ t_parameterParser } {};
+   ~ActionInitialization(){};
 
     void BuildForMaster() const override;
     void Build() const override;
+
+  private:
+    ParameterParser* m_parameterParser;
 };
 
 }

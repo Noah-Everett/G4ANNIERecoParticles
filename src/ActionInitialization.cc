@@ -37,37 +37,23 @@
 namespace ANNIERecoParticles
 {
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-ActionInitialization::~ActionInitialization()
-{}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void ActionInitialization::BuildForMaster() const
 {
   RunAction* runAction = new RunAction;
   SetUserAction(runAction);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void ActionInitialization::Build() const
 {
-  SetUserAction(new PrimaryGeneratorAction);
+  SetUserAction( new PrimaryGeneratorAction );
 
   RunAction* runAction = new RunAction;
-  SetUserAction(runAction);
+  SetUserAction( runAction );
 
-  EventAction* eventAction = new EventAction(runAction);
-  SetUserAction(eventAction);
+  EventAction* eventAction = new EventAction( runAction );
+  SetUserAction( eventAction );
 
-  SetUserAction(new SteppingAction(eventAction,runAction));
+  SetUserAction( new SteppingAction( eventAction, runAction, m_parameterParser ) );
   // SetUserAction(new StackingAction());
 }
 

@@ -1,8 +1,11 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <map>
 using std::to_string;
-    
+using std::string;
+using std::map;
+
 int particle = 1; // 0 = muon, 1 = electron
 double c = 2.998e10; // cm/s
 double c2 = pow( c, 2 ); // (cm/s)^2
@@ -10,10 +13,21 @@ double n_water = 1.333; //
 double n_sci   = 1.500; //
 double m_mu = 105.7; // MeV/c^2
 double m_e = 0.511; // MeV/c^2
-double m = m_e;
-int nBins = 500;
+double m = m_mu;
+int nBins = 100;
 int nParticles = 100;
 
+const map< string, int > map_process  = { { "Cerenkov"            , 0 },
+                                          { "eBrem"               , 1 },
+                                          { "muMinusCaptureAtRest", 2 },
+                                          { "neutronInelastic"    , 3 },
+                                          { "nCapture"            , 4 } };
+const map< string, int > map_particle = { { "mu"                  , 0 },
+                                          { "e"                   , 1 },
+                                          { "generic"             , 2 },
+                                          { "static"              , 3 },
+                                          { "nucleon"             , 4 } };
+    
 struct gamma {
     double Primary_E;
     double Primary_X;
@@ -35,7 +49,7 @@ double get_cherAngle( double m, double n, double k )
   double b = sqrt( 1 - pow( m / ( k + m*c2 ), 2 ) );
   if( 1 / n > b ){
     return -99999;
-    cout << k << endl;
+    cout << "Under Cerenkov limit. k = " << k << endl;
   }
   double theta = acos( 1 / ( n * b ) );
   return theta * 180 / M_PI;
@@ -59,8 +73,10 @@ void make_hists( vector< string > files )
 {
     gStyle->SetOptStat(0);
 
-    TChain* tree_dEdX   = new TChain( "G4VtxRecoParticles;1" );
-    TChain* tree_gammas = new TChain( "G4VtxRecoParticles;2" );
+    //TChain* tree_dEdX   = new TChain( "G4VtxRecoParticles;1" );
+    //TChain* tree_gammas = new TChain( "G4VtxRecoParticles;2" );
+    TChain* tree_dEdX   = new TChain( "G4ANNIERecoParticles;1" );
+    TChain* tree_gammas = new TChain( "G4ANNIERecoParticles;2" );
     for( string file : files ) {
       tree_dEdX  ->Add( file.c_str() );
       tree_gammas->Add( file.c_str() );
@@ -90,16 +106,16 @@ void make_hists( vector< string > files )
     double max_Photon_E  = -9999   ;
     double min_Photon_E  =  9999   ;
 
-    tree_dEdX  ->SetBranchAddress( "X",                   &temp_step.X                );
-    tree_dEdX  ->SetBranchAddress( "dX",                  &temp_step.dX               );
-    tree_dEdX  ->SetBranchAddress( "E",                   &temp_step.E                );
-    tree_dEdX  ->SetBranchAddress( "dE",                  &temp_step.dE               );
-    tree_dEdX  ->SetBranchAddress( "dEdX",                &temp_step.dEdX             );
-    tree_gammas->SetBranchAddress( "Primary_E",           &temp_gamma.Primary_E       );
-    tree_gammas->SetBranchAddress( "Primary_X",           &temp_gamma.Primary_X       );
-    tree_gammas->SetBranchAddress( "Photon_theta",        &temp_gamma.Photon_theta    );
-    tree_gammas->SetBranchAddress( "Photon_E",            &temp_gamma.Photon_E        );
-    tree_gammas->SetBranchAddress( "CreationProcess_int", &temp_gamma.CreationProcess );
+    tree_dEdX  ->SetBranchAddress( "X"              , &temp_step.X                );
+    tree_dEdX  ->SetBranchAddress( "dX"             , &temp_step.dX               );
+    tree_dEdX  ->SetBranchAddress( "E"              , &temp_step.E                );
+    tree_dEdX  ->SetBranchAddress( "dE"             , &temp_step.dE               );
+    tree_dEdX  ->SetBranchAddress( "dEdX"           , &temp_step.dEdX             );
+    tree_gammas->SetBranchAddress( "Primary_E"      , &temp_gamma.Primary_E       );
+    tree_gammas->SetBranchAddress( "Primary_X"      , &temp_gamma.Primary_X       );
+    tree_gammas->SetBranchAddress( "Photon_theta"   , &temp_gamma.Photon_theta    );
+    tree_gammas->SetBranchAddress( "Photon_E"       , &temp_gamma.Photon_E        );
+    tree_gammas->SetBranchAddress( "CreationProcess", &temp_gamma.CreationProcess );
  
     for( Int_t i = 0; i < tree_dEdX->GetEntries(); i++ ) {
         tree_dEdX->GetEntry( i );
@@ -114,7 +130,7 @@ void make_hists( vector< string > files )
     } 
     for( Int_t i = 0; i < tree_gammas->GetEntries(); i++ ) {
         tree_gammas->GetEntry( i );
-        temp_gamma.Photon_theta*=180/M_PI;
+        // temp_gamma.Photon_theta*=180/M_PI;
         gammas.push_back(temp_gamma);
         
         if( temp_gamma.Primary_E    > max_Primary_E                                 ) max_Primary_E    = temp_gamma.Primary_E   ;
@@ -146,7 +162,6 @@ void make_hists( vector< string > files )
 
       TH2D* hist_primaryEnergyVsPhotonThetaNormalized = new TH2D( "", "Primary Lepton Energy vs All Photon Angles Normalized;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
       for( int i = 0; i < gammas.size(); i++ ) 
-        // if( gammas[ i ].CreationProcess == 24720245 )
           hist_primaryEnergyVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
       hist_primaryEnergyVsPhotonThetaNormalized->Scale(1/double(nParticles));
       hist_primaryEnergyVsPhotonThetaNormalized->Draw("COLZ");
@@ -158,12 +173,12 @@ void make_hists( vector< string > files )
       for( double x = 0; x < 5; x += 0.01 ){
           point = get_cherAngle( m, n_water, x );
           if( point >= 0 ) graph_cher->SetPoint( i++, x, point );
-          cout << point << " " << x << endl;
+          // cout << point << " " << x << endl;
       }
       for( double x = 10; x <= max_Primary_E; x += 10 ){
           point = get_cherAngle( m, n_water, x );
           if( point >= 0 ) graph_cher->SetPoint( i++, x, point );
-          cout << point << " " << x << endl;
+          // cout << point << " " << x << endl;
       }
       graph_cher->SetMarkerStyle( 8 );
       graph_cher->SetLineWidth  ( 3 );
@@ -204,7 +219,7 @@ void make_hists( vector< string > files )
       canvas_c3->SetLogz();
       TH2D* hist_primaryEnergyVsPhotonNotThetaC = new TH2D( "", "Primary Lepton Energy vs nonCerenkov Photon Angles;" "E [MeV];" "#theta [Deg]", nBins, min_Primary_E, max_Primary_E, nBins, min_Photon_theta, max_Photon_theta );
       for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess != 24720245 )
+        if( gammas[ i ].CreationProcess != map_process.at( "Cerenkov" ) )
           hist_primaryEnergyVsPhotonNotThetaC->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
       hist_primaryEnergyVsPhotonNotThetaC->Scale(1/double(nParticles));
       hist_primaryEnergyVsPhotonNotThetaC->Draw("COLZ");
@@ -233,7 +248,7 @@ void make_hists( vector< string > files )
       canvas_c5->SetLogz();
       TH2D* hist_primaryPositionVsPhotonThetaCNormalized = new TH2D( "", "Primary Lepton Track Length vs Cerenkov Photon Angles Normalized;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
       for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess == 24720245 )
+        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
           hist_primaryPositionVsPhotonThetaCNormalized->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
       hist_primaryPositionVsPhotonThetaCNormalized->Scale(1/double(nParticles));
       hist_primaryPositionVsPhotonThetaCNormalized->Draw("COLZ");
@@ -261,7 +276,7 @@ void make_hists( vector< string > files )
       canvas_c7->SetLogz();
       TH2D* hist_primaryPositionVsPhotonNotThetaC = new TH2D( "", "Primary Lepton Track Length vs nonCerenkov Photon Angles;" "x [cm];" "#theta [Deg]", nBins, min_Primary_X, max_Primary_X, nBins, min_Photon_theta, max_Photon_theta );
       for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess != 24720245 )
+        if( gammas[ i ].CreationProcess != map_process.at( "Cerenkov" ) )
           hist_primaryPositionVsPhotonNotThetaC->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
       hist_primaryPositionVsPhotonNotThetaC->Scale(1/double(nParticles));
       hist_primaryPositionVsPhotonNotThetaC->Draw("COLZ");
@@ -316,7 +331,7 @@ void make_hists( vector< string > files )
       //canvas_c11->SetLogz();
       TH2D* hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", "Cerenkov Photon Angles Normalized vs Primary Lepton Track Length;" "cos(#theta);" "x [cm]", nBins/2, 0, 1, nBins/2/2/2, 0, 133 );
       for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess == 24720245 )
+        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
           hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_X );
       hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
       hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");

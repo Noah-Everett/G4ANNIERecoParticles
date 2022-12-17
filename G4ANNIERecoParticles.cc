@@ -62,7 +62,7 @@ int main(int argc,char** argv)
   physicsList->SetVerboseLevel(1);
   runManager->SetUserInitialization(physicsList);
 
-  runManager->SetUserInitialization(new ActionInitialization());
+  runManager->SetUserInitialization( new ActionInitialization( parameterParser ) );
 
   G4VisManager* visManager = new G4VisExecutive;
   visManager->Initialize();
