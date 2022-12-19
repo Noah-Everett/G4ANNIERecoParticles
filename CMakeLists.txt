@@ -3,7 +3,6 @@
 # Setup the project
 cmake_minimum_required(VERSION 3.16...3.21)
 project(G4VtxRecoParticles)
-set( CMAKE_CXX_STANDARD 20 )
 
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
@@ -27,17 +26,6 @@ include(${Geant4_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${ROOT_INCLUDE_DIRS})
 
-
-#----------------------------------------------------------------------------
-# Use Base
-#
-if( NOT DEFINED ENV{BASE_DIR} )
-message( FATAL_ERROR "`ENV\${BASE_DIR}` is not set. Make sure to source `setup_base.sh`, which is in `Base/`." )
-else()
-message( STATUS "`$ENV{BASE_DIR}` is set to `{BASE_DIR}`." )
-endif()
-add_subdirectory( $ENV{BASE_DIR} $ENV{BASE_DIR}/build )
-
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
 # NB: headers are included so they will show up in IDEs
@@ -49,7 +37,7 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 # Add the executable, and link it to the Geant4 libraries
 #
 add_executable(G4ANNIERecoParticles G4ANNIERecoParticles.cc ${sources} ${headers})
-target_link_libraries(G4ANNIERecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} Base)
+target_link_libraries(G4ANNIERecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

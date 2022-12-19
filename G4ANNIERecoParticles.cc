@@ -38,43 +38,12 @@
 
 #include "Randomize.hh"
 
-#include "CmdLnArgParser.hpp"
-#include "Messenger.hpp"
-
-using namespace Base;
-using Base::CmdLnArgParser::parser;
-using Base::Messenger::Verbosity::fatal_int;
-using Base::Messenger::messenger_c;
-
 using namespace ANNIERecoParticles;
-
-const string k_welcome = "#==========================================#\n"
-                         "#========== G4ANNIERecoParticles ==========#\n"
-                         "#==========================================#\n";
-const string k_help    = "PROGRAM HELP/USAGE STATEMENT HERE";
-
-namespace Base::Messenger {
-messenger messenger_c( cout, k_welcome, LOCATION );
-}
-
-// Possible arguments
-vector< string > optsWArg_req{ "--mac_run"      };
-vector< string > optsWArg_opt{ "--mac_detector" };
-vector< string > optsNArg_req{                        };
-vector< string > optsNArg_opt{ "-h", "--help"         };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 int main(int argc, char** argv)
 {
-    parser parser( argc, argv, optsWArg_req, optsWArg_opt, optsNArg_req, optsNArg_opt );
-
-    if( parser.hasOpt( "-h" ) || parser.hasOpt( "--help" ) ) {
-        messenger_c( fatal_int, LOCATION ) << '\n' << k_help;
-        return 0;
-    }
-
-
     G4SteppingVerbose::UseBestUnit( 4 );
 
     ParameterParser* parameterParser = new ParameterParser();
