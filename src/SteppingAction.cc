@@ -73,8 +73,8 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
   // if photon
   else if( m_parameterParser->get_record_gammas() ) {
     auto analysisManager = G4AnalysisManager::Instance();
-    analysisManager->FillNtupleDColumn( 1, 0, prev_len );
-    analysisManager->FillNtupleDColumn( 1, 1, prev_ke );
+    analysisManager->FillNtupleDColumn( 1, 0, prev_ke );
+    analysisManager->FillNtupleDColumn( 1, 1, prev_len );
     analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) / M_PI * 180 );
     analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy()/MeV );
     if( map_process.find( track->GetCreatorProcess()->GetProcessName() ) != map_process.end() )

@@ -2,9 +2,12 @@
 #include <string>
 #include <cmath>
 #include <map>
+#include <ostream>
 using std::to_string;
 using std::string;
 using std::map;
+using std::cout;
+using std::endl;
 
 int particle = 1; // 0 = muon, 1 = electron
 double c = 2.998e10; // cm/s
@@ -13,7 +16,9 @@ double n_water = 1.333; //
 double n_sci   = 1.500; //
 double m_mu = 105.7; // MeV/c^2
 double m_e = 0.511; // MeV/c^2
+
 double m = m_mu;
+double n = n_water;
 int nBins = 100;
 int nParticles = 100;
 
@@ -33,7 +38,8 @@ struct gamma {
     double Primary_X;
     double Photon_theta;
     double Photon_E;
-    int    CreationProcess; // == 24720245 for Cerenkov
+    int    CreationProcess;
+    int    ParentParticle;
 };
 
 struct step {
@@ -46,7 +52,7 @@ struct step {
 
 double get_cherAngle( double m, double n, double k )
 {
-  double b = sqrt( 1 - pow( m / ( k + m*c2 ), 2 ) );
+  double b = sqrt( 1 - pow( m / ( k + m ), 2 ) );
   if( 1 / n > b ){
     return -99999;
     cout << "Under Cerenkov limit. k = " << k << endl;
@@ -71,7 +77,23 @@ void addBoarder( TCanvas*& canvas )
 
 void make_hists( vector< string > files )
 {
+    cout << "#========== SETTINGS ==========#" << endl;
+    cout << "  Using mass: " << m << endl;
+    cout << "  Using n: " << n << endl;
+    cout << "  Using nBins: " << nBins << endl;
+    cout << "  Using nParticles: " << nParticles << endl;
+    cout << "#==============================#" << endl;
+    cout << endl;
+
     gStyle->SetOptStat(0);
+    // Int_t palette[5];
+    // palette[1] = 20;
+    // palette[2] = 23;
+    // palette[3] = 30;
+    // palette[4] = 32;
+    // palette[5] = 0;
+    // gStyle->SetPalette(5,palette);
+
 
     //TChain* tree_dEdX   = new TChain( "G4VtxRecoParticles;1" );
     //TChain* tree_gammas = new TChain( "G4VtxRecoParticles;2" );
@@ -116,6 +138,7 @@ void make_hists( vector< string > files )
     tree_gammas->SetBranchAddress( "Photon_theta"   , &temp_gamma.Photon_theta    );
     tree_gammas->SetBranchAddress( "Photon_E"       , &temp_gamma.Photon_E        );
     tree_gammas->SetBranchAddress( "CreationProcess", &temp_gamma.CreationProcess );
+    tree_gammas->SetBranchAddress( "ParentParticle" , &temp_gamma.ParentParticle  );
  
     for( Int_t i = 0; i < tree_dEdX->GetEntries(); i++ ) {
         tree_dEdX->GetEntry( i );
@@ -143,13 +166,16 @@ void make_hists( vector< string > files )
         if( temp_gamma.Photon_E     < min_Photon_E                                  ) min_Photon_E     = temp_gamma.Photon_E    ;
     } 
 
-    cout << "Primary E = [" << min_Primary_E << ", " << max_Primary_E << "]" << endl;
-    cout << "Primary X = [" << min_Primary_X << ", " << max_Primary_X << "]" << endl;
-    cout << "Photon theta = [" << min_Photon_theta << ", " << max_Photon_theta << "]" << endl;
-    cout << "Photon E = [" << min_Photon_E << ", " << max_Photon_E << "]" << endl;
-    cout << "X = [" << min_X << ", " << max_X << "]" << endl;
-    cout << "dEdX = [" << min_dEdX << ", " << max_dEdX << "]" << endl;
-    cout << "E = [" << min_E << ", " << max_E << "]" << endl;
+    cout << "#========== VARIABLES MIN AND MAX ==========#" << endl;
+    cout << "  Primary E = [" << min_Primary_E << ", " << max_Primary_E << "]" << endl;
+    cout << "  Primary X = [" << min_Primary_X << ", " << max_Primary_X << "]" << endl;
+    cout << "  Photon theta = [" << min_Photon_theta << ", " << max_Photon_theta << "]" << endl;
+    cout << "  Photon E = [" << min_Photon_E << ", " << max_Photon_E << "]" << endl;
+    cout << "  X = [" << min_X << ", " << max_X << "]" << endl;
+    cout << "  dEdX = [" << min_dEdX << ", " << max_dEdX << "]" << endl;
+    cout << "  E = [" << min_E << ", " << max_E << "]" << endl;
+    cout << "#===========================================#" << endl;
+    cout << endl;
 
     ////////////////////////////////////////////////////
     //// c1 /// E vs Theta /// All /// Normailized /////
@@ -170,15 +196,9 @@ void make_hists( vector< string > files )
       
       int i = 0;
       double point;
-      for( double x = 0; x < 5; x += 0.01 ){
-          point = get_cherAngle( m, n_water, x );
+      for( double x = 0; x < max_Primary_E; x += 0.1 ){
+          point = get_cherAngle( m, n, x );
           if( point >= 0 ) graph_cher->SetPoint( i++, x, point );
-          // cout << point << " " << x << endl;
-      }
-      for( double x = 10; x <= max_Primary_E; x += 10 ){
-          point = get_cherAngle( m, n_water, x );
-          if( point >= 0 ) graph_cher->SetPoint( i++, x, point );
-          // cout << point << " " << x << endl;
       }
       graph_cher->SetMarkerStyle( 8 );
       graph_cher->SetLineWidth  ( 3 );
@@ -362,5 +382,34 @@ void make_hists( vector< string > files )
       hist_EVsdEdX_normalized->Draw("COLZ");
       hist_EVsdEdX_normalized->Scale(1/double(nParticles));
       addBoarder( canvas_c13 );
+    }
+    
+    ///////////////////////////////////////////////////////////////
+    //// c14 /// X vs Theta /// Cerenkov /// mu /// Normalized ////
+    ///////////////////////////////////////////////////////////////
+    if( present_gammas ){
+      TCanvas* canvas_c14 = new TCanvas( "c14", "", 1000, 1000 );
+      //canvas_c14->SetLogz();
+      TH2D* hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", "Mu Cerenkov Photon Angles Normalized vs Primary Lepton Track Length;" "cos(#theta);" "x [cm]", nBins/2, 0, 1, nBins/2/2, 0, 133 );
+      for( int i = 0; i < gammas.size(); i++ ) 
+        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) && gammas[ i ].ParentParticle == map_particle.at( "mu" ) )
+          hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_X );
+      hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
+      hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");
+      addBoarder( canvas_c14 );
+    }
+    /////////////////////////////////////////////////
+    //// c15 /// X vs Theta /// e /// Normalized ////
+    /////////////////////////////////////////////////
+    if( present_gammas ){
+      TCanvas* canvas_c15 = new TCanvas( "c15", "", 1000, 1000 );
+      //canvas_c15->SetLogz();
+      TH2D* hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat = new TH2D( "", "All e^{-} Photon Angles Normalized vs Primary Lepton Track Length;" "cos(#theta);" "x [cm]", nBins/2, 0, 1, nBins/2/2, 0, 133 );
+      for( int i = 0; i < gammas.size(); i++ ) 
+        if( gammas[ i ].ParentParticle == map_particle.at( "e" ) )
+          hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_X );
+      hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
+      hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Draw("COLZ");
+      addBoarder( canvas_c15 );
     }
 }
