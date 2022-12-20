@@ -4,6 +4,12 @@
 
 `<>` denotes required arguments and `[]` denotes optional arguments.
 
+## Building `G4ANNIERecoParticles`
+You will need [CMake](https://cmake.org/). Then run the following command:
+```
+cd </path/to/G4ANNIERecoParticles/dir> && mkdir build && cd build && cmake .. && make -j<number of threads>
+```
+
 ## `G4ANNIERecoParticles` Usage
 ```
 G4ANNIERecoParticles </path/to/detector/macro>.mac [</path/to/run/macro>.mac]
