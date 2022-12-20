@@ -4,7 +4,7 @@
          dir_out=reco-data/e-100-0-1000-10-water_doped-gammas/
         dir_exec=build/
       dir_script=./
-     G4_particle=mu-
+     G4_particle=e-
    G4_nParticles=100
      G4_material=water_doped
 G4_record_gammas=1
@@ -33,7 +33,7 @@ G4_record_gammas=1
 /tracking/verbose 0
 /process/verbose 0
 
-/gun/particle mu-
+/gun/particle e-
 /gun/energy <E> MeV
 /gun/position 0 0 0
 /gun/direction 1 0 0
