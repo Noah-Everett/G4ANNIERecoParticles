@@ -16,7 +16,7 @@ G4ANNIERecoParticles </path/to/detector/macro>.mac [</path/to/run/macro>.mac]
 ```
 ### Example Usage
 ```
-build/G4ANNIERecoParticles build/detector.mac build/muon.mac
+build/G4ANNIERecoParticles build/macros/detector.mac build/macros/muon.mac
 ```
 
 ## `make_hists.sh` Usage

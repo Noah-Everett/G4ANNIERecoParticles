@@ -74,7 +74,7 @@ int main(int argc, char** argv)
         G4String fileName = argv[ 2 ];
         UImanager->ApplyCommand( command + fileName );
     } else {
-        UImanager->ApplyCommand( "/control/execute init_vis.mac" );
+        UImanager->ApplyCommand( "/control/execute macros/init_vis.mac" );
         ui->SessionStart();
         delete ui;
     }

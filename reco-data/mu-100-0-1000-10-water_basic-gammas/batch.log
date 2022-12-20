@@ -1,0 +1,46 @@
+#==============================#
+#========== settings ==========#
+#==============================#
+         dir_out=reco-data/mu-100-0-1000-10-water_basic-gammas/
+        dir_exec=build/
+      dir_script=./
+     G4_particle=mu-
+   G4_nParticles=100
+     G4_material=water_basic
+G4_record_gammas=1
+  G4_record_dEdX=0
+           E_min=0
+           E_max=1000
+         E_delta=10
+
+
+
+#==================================#
+#========== detector.mac ==========#
+#==================================#
+/ANNIERecoParticles/material water_basic
+/ANNIERecoParticles/record/dEdX 0
+/ANNIERecoParticles/record/gammas 1
+
+
+
+#=============================#
+#========== run.mac ==========#
+#=============================#
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/process/verbose 0
+
+/gun/particle mu-
+/gun/energy <E> MeV
+/gun/position 0 0 0
+/gun/direction 1 0 0
+
+/process/activate Cerenkov
+/process/activate Scintillation
+/process/optical/cerenkov/setTrackSecondariesFirst true
+/process/optical/scintillation/setTrackSecondariesFirst true
+
+/run/beamOn 100

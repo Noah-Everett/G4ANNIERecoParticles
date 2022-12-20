@@ -2,18 +2,18 @@ main() {
 echo "Processing command line arguments."
 for i in "$@"; do
   case $i in
-    --dir_out=*          ) export dir_out="${i#*=}" shift    ;;
-    --dir_exec=*         ) export dir_exec="${i#*=}" shift    ;;
-    --dir_script=*       ) export dir_script="${i#*=}" shift    ;;
-    --G4_particle=*      ) export G4_particle="${i#*=}" shift    ;;
-    --G4_nParticles=*    ) export G4_nParticles="${i#*=}" shift    ;;
-    --G4_material=*      ) export G4_material="${i#*=}" shift    ;;
+    --dir_out=*          ) export dir_out="${i#*=}"          shift    ;;
+    --dir_exec=*         ) export dir_exec="${i#*=}"         shift    ;;
+    --dir_script=*       ) export dir_script="${i#*=}"       shift    ;;
+    --G4_particle=*      ) export G4_particle="${i#*=}"      shift    ;;
+    --G4_nParticles=*    ) export G4_nParticles="${i#*=}"    shift    ;;
+    --G4_material=*      ) export G4_material="${i#*=}"      shift    ;;
     --G4_record_gammas=* ) export G4_record_gammas="${i#*=}" shift    ;;
-    --G4_record_dEdX=*   ) export G4_record_dEdX="${i#*=}" shift    ;;
-    --E_min=*            ) export E_min="${i#*=}" shift    ;;
-    --E_max=*            ) export E_max="${i#*=}" shift    ;;
-    --E_delta=*          ) export E_delta="${i#*=}" shift    ;;
-    -*                   ) echo "Unknown option \"$i\""; return 1 ;;
+    --G4_record_dEdX=*   ) export G4_record_dEdX="${i#*=}"   shift    ;;
+    --E_min=*            ) export E_min="${i#*=}"            shift    ;;
+    --E_max=*            ) export E_max="${i#*=}"            shift    ;;
+    --E_delta=*          ) export E_delta="${i#*=}"          shift    ;;
+    -*                   ) echo "Unknown option \"$i\"";     return 1 ;;
   esac
 done
 

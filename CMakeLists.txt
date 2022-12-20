@@ -45,11 +45,11 @@ target_link_libraries(G4ANNIERecoParticles ${Geant4_LIBRARIES} ${ROOT_LIBRARIES}
 # relies on these scripts being in the current working directory.
 #
 set(SCRIPTS
-  init_vis.mac
-  muon.mac
-  electron.mac
-  vis.mac
-  detector.mac
+  macros/init_vis.mac
+  macros/muon.mac
+  macros/electron.mac
+  macros/vis.mac
+  macros/detector.mac
   )
 
 foreach(_script ${SCRIPTS})
