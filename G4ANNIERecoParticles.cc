@@ -47,11 +47,13 @@ int main(int argc, char** argv)
     G4SteppingVerbose::UseBestUnit( 4 );
 
     ParameterParser* parameterParser = new ParameterParser();
+    G4UImanager* UImanager = G4UImanager::GetUIpointer();
+    G4String command = "/control/execute ";
+    G4String fileName = argv[ 1 ];
+    UImanager->ApplyCommand( command + fileName );
 
     G4UIExecutive* ui{ nullptr };
-    if ( argc == 1 ) ui = new G4UIExecutive(argc, argv);
-
-    G4UImanager* UImanager = G4UImanager::GetUIpointer();
+    if ( argc == 2 ) ui = new G4UIExecutive(argc, argv);
 
     auto* runManager = G4RunManagerFactory::CreateRunManager( G4RunManagerType::Default );
 
@@ -69,7 +71,7 @@ int main(int argc, char** argv)
     visManager->Initialize();
     if( !ui ) {
         G4String command = "/control/execute ";
-        G4String fileName = argv[ 1 ];
+        G4String fileName = argv[ 2 ];
         UImanager->ApplyCommand( command + fileName );
     } else {
         UImanager->ApplyCommand( "/control/execute init_vis.mac" );

@@ -11,21 +11,12 @@ struct gamma {
     double Photon_theta;
 };
 
-void make_dTdXHist( vector< string > files, string dir_out = "", int nFile = -999999 )
+void make_dTdXHist( string file_in, string file_out )
 {
     gStyle->SetOptStat(0);
 
-    if( dir_out == "" ) {
-        cout << "ERROR: set `dir_out`" << endl;
-        return 1;
-    } else if( nFile == -999999 ) {
-        cout << "ERROR: set `nFile`" << endl;
-        return 1;
-    }
-
     TChain* tree = new TChain( "G4ANNIERecoParticles;2" );
-    for( string file : files )
-      tree->Add( file.c_str() );
+    tree->Add( file_in.c_str() );
 
     vector< gamma > gammas;
     gamma temp;
@@ -58,7 +49,6 @@ void make_dTdXHist( vector< string > files, string dir_out = "", int nFile = -99
         hist_primaryEnergyVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_X, gammas[ i ].Photon_theta );
     hist_primaryEnergyVsPhotonThetaNormalized->Scale(1/double(nParticles));
     // hist_primaryEnergyVsPhotonThetaNormalized->Draw("COLZ");
-    string name = dir_out + "/hist_" + to_string( nFile ) + ".root";
-    cout << "Making `" << name << "`" << endl;
-    hist_primaryEnergyVsPhotonThetaNormalized->SaveAs(name.c_str());
+    cout << "Making `" << file_out << "`" << endl;
+    hist_primaryEnergyVsPhotonThetaNormalized->SaveAs( file_out.c_str() );
 }

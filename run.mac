@@ -1,0 +1,19 @@
+/run/initialize
+
+/control/verbose 0
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/process/verbose 0
+
+/gun/particle mu-
+/gun/energy 300 MeV
+/gun/position 0 0 0
+/gun/direction 1 0 0
+
+/process/activate Cerenkov
+/process/activate Scintillation
+/process/optical/cerenkov/setTrackSecondariesFirst true
+/process/optical/scintillation/setTrackSecondariesFirst true
+
+/run/beamOn 100
