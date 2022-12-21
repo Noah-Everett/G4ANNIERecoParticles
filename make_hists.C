@@ -16,10 +16,10 @@ const double n_sci  { 1.500 }; //
 const double m_mu   { 105.7 }; // MeV/c^2
 const double m_e    { 0.511 }; // MeV/c^2
 
-int particle   = 1; // 0 = muon, 1 = electron
-int nBins      = 100;
-int nParticles = 100;
-double n       = n_water;
+int particle  { 1 }; // 0 = muon, 1 = electron
+int nBins     { 100 };
+int nParticles{ 100 };
+double n      { n_water };
 double m{ ( particle == 0 ) ? m_mu : m_e };
 string particle_string{ ( particle == 0 ) ? "Muon" : "Electron" };
 
