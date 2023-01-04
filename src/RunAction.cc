@@ -68,11 +68,15 @@ RunAction::RunAction()
 
   analysisManager->CreateNtuple("G4ANNIERecoParticles", "Photons");
   analysisManager->CreateNtupleDColumn("Primary_E");
-  analysisManager->CreateNtupleDColumn("Primary_X");
+  analysisManager->CreateNtupleDColumn("Primary_S");
   analysisManager->CreateNtupleDColumn("Photon_theta");
   analysisManager->CreateNtupleDColumn("Photon_E");
   analysisManager->CreateNtupleIColumn("CreationProcess");
   analysisManager->CreateNtupleIColumn("ParentParticle");
+  analysisManager->CreateNtupleDColumn("Parent_X");
+  analysisManager->CreateNtupleDColumn("Parent_Y");
+  analysisManager->CreateNtupleDColumn("Parent_Z");
+  analysisManager->CreateNtupleIColumn("IsFirstStep");
   analysisManager->FinishNtuple();
 }
 

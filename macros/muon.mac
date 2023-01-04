@@ -16,4 +16,4 @@
 /process/optical/cerenkov/setTrackSecondariesFirst true
 /process/optical/scintillation/setTrackSecondariesFirst true
 
-/run/beamOn 100
+/run/beamOn 1000

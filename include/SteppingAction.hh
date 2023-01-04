@@ -60,7 +60,11 @@ class SteppingAction : public G4UserSteppingAction
     G4double prev_len = 0;
     G4double prev_ke = 0;
     G4String prev_particle;
+    G4double prev_x = 0;
+    G4double prev_y = 0;
+    G4double prev_z = 0;
     bool first_step = true;
+    bool isFirstStep = true;
 };
 }
 
