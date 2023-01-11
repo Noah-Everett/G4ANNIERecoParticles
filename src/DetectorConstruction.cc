@@ -78,33 +78,34 @@ DetectorConstruction::~DetectorConstruction() {
 
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-  ConstructMaterials();
-  
-  G4bool checkOverlaps = true;
-  G4double size_X=100*m, size_Y=100*m, size_Z=100*m;
+    ConstructMaterials();
+    
+    G4bool checkOverlaps = true;
+    G4double size_X=100*m, size_Y=200*m, size_Z=200*m;
 
-  G4Material* material = G4Material::GetMaterial( m_parameterParser->get_material() );
-  G4cout << "Using " << material->GetName() << G4endl;
+    G4Material* material = G4Material::GetMaterial( m_parameterParser->get_material() );
+    G4cout << "Using " << material->GetName() << G4endl;
 
-  G4Box* world_s = new G4Box( "world", size_X, size_Y, size_Z );
-  G4LogicalVolume  * world_lv = new G4LogicalVolume( world_s, material, "world" );
-  G4VPhysicalVolume* world_pv = new G4PVPlacement( 0, G4ThreeVector(0,0,0), world_lv, "world", 0, false, 0, checkOverlaps);
+    G4Box* world_s = new G4Box( "world", size_X, size_Y, size_Z );
+    G4LogicalVolume  * world_lv = new G4LogicalVolume( world_s, material, "world" );
+    G4VPhysicalVolume* world_pv = new G4PVPlacement( 0, G4ThreeVector(0,0,0), world_lv, "world", 0, false, 0, checkOverlaps);
 
-  G4double size_dX;
-  if( m_parameterParser->get_record_dEdX() )
-    size_dX = 0.00001 / m; // for real runs (10um)
-  else
-    size_dX = size_X; // one volume
+    G4double size_dX;
+    if( m_parameterParser->get_record_dEdX() ) {
+        // size_dX = 0.00001 * m; // for real runs (10um)
+        size_dX = 0.001 * m; // for real runs (10mm)
+    } else
+        size_dX = size_X; // one volume
 
-  G4double x = size_X / 2;
-  G4Box* material_s = new G4Box( "material", size_dX/2, size_Y, size_Z );
+    G4double x = -size_X / 2;
+    G4Box* material_s = new G4Box( "material", size_dX/2, size_Y, size_Z );
 
-  G4LogicalVolume* material_lv = new G4LogicalVolume( material_s, material, "material" );
+    G4LogicalVolume* material_lv = new G4LogicalVolume( material_s, material, "material" );
 
-  for( int i = 0; i < size_X / size_dX; i++, x += size_dX )
-    new G4PVPlacement( 0, G4ThreeVector( x, 0, 0 ), material_lv, "material", world_lv, true, i, checkOverlaps );
+    for( int i = 0; i < size_X / size_dX; i++, x += size_dX )
+        new G4PVPlacement( 0, G4ThreeVector( x, 0, 0 ), material_lv, "material", world_lv, true, i, checkOverlaps );
 
-  return world_pv;
+    return world_pv;
 }
 
 }

@@ -18,7 +18,7 @@ const double m_e    { 0.511 }; // MeV/c^2
 
 int particle  { 0 }; // 0 = muon, 1 = electron
 int nBins     { 200 };
-int nParticles{ 1000 };
+int nParticles{ 10000 };
 double n      { n_water };
 double m{ ( particle == 0 ) ? m_mu : m_e };
 string particle_string{ ( particle == 0 ) ? "Muon" : "Electron" };
@@ -81,15 +81,6 @@ void addBoarder( TCanvas*& canvas )
     canvas->SetWindowSize  (1200,1200);
 }
 
-void redrawBorder()
-{
-   gPad->Update();
-   gPad->RedrawAxis();
-   TLine l;
-   l.DrawLine(gPad->GetUxmin(), gPad->GetUymax(), gPad->GetUxmax(), gPad->GetUymax());
-   l.DrawLine(gPad->GetUxmax(), gPad->GetUymin(), gPad->GetUxmax(), gPad->GetUymax());
-}
-
 void make_hists( vector< string > files )
 {
     cout << "#========== SETTINGS ==========#" << endl;
@@ -110,23 +101,6 @@ void make_hists( vector< string > files )
     // gStyle->SetPalette(5,palette);
     // gStyle->SetPalette( 57 ); //55
                               
-    const Int_t NRGBs = 5;
-    const Int_t NCont = 50;
-    Double_t stops[NRGBs] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-    Double_t red[NRGBs]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-    Double_t green[NRGBs] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-    Double_t blue[NRGBs]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-    TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
-    gStyle->SetNumberContours(NCont);
-    Int_t colors[ NCont + 2 ];
-    for( int i{ 0 }; i < NCont; i++ )
-        colors[ i + 1 ] = gStyle->GetColorPalette( i );
-    colors[ 0         ] = kWhite;
-    colors[ NCont + 1 ] = kBlack;
-    gStyle->SetNumberContours( NCont + 2 );
-    gStyle->SetPalette( NCont + 2, colors );
-
-
     //TChain* tree_dEdX   = new TChain( "G4VtxRecoParticles;1" );
     //TChain* tree_gammas = new TChain( "G4VtxRecoParticles;2" );
     TChain* tree_dEdX   = new TChain( "G4ANNIERecoParticles;1" );
@@ -229,12 +203,16 @@ void make_hists( vector< string > files )
     cout << "#===========================================#" << endl;
     cout << endl;
 
+    // TEMP for plots
+    min_dEdX = -8;
+
     ////////////////////////////////////////////////////
     //// c1 /// E vs Theta /// All /// Normailized /////
     ////////////////////////////////////////////////////
     TGraph* graph_cher = new TGraph( 10 / 0.01 + max_Primary_E / 10 - 1 );
     TLegend* legend_cher = new TLegend();
     if( present_gammas ){
+        use_palatte_rainbow_MB();
         TCanvas* canvas_c1 = new TCanvas( "c1", "", 1000, 1000 );
         canvas_c1->SetLogz();
 
@@ -268,6 +246,7 @@ void make_hists( vector< string > files )
     //// c2 /// E vs Theta /// All /// !Normailized /////
     /////////////////////////////////////////////////////
     if( present_gammas ){
+        use_palatte_rainbow_MB();
         TCanvas* canvas_c2 = new TCanvas( "c2", "", 1000, 1000 );
         canvas_c2->SetLogz();
 
@@ -276,6 +255,7 @@ void make_hists( vector< string > files )
         for( int i = 0; i < gammas.size(); i++ ) 
             hist_primaryEnergyVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
         hist_primaryEnergyVsPhotonThetaNotNormalized->Draw("COLZ");
+        redrawBorder();
         addBoarder( canvas_c2 );
 
         graph_cher->SetMarkerStyle( 8 );
@@ -290,6 +270,7 @@ void make_hists( vector< string > files )
     //// c3 /// E vs Theta /// !Cerenkov ////
     /////////////////////////////////////////
     if( present_gammas ){
+        use_palatte_rainbow_MB();
         TCanvas* canvas_c3 = new TCanvas( "c3", "", 1000, 1000 );
         canvas_c3->SetLogz();
         title = "Primary " + particle_string + " Energy vs nonCerenkov Photon Angles;" "E [MeV];" "#theta [Deg]";
@@ -299,6 +280,7 @@ void make_hists( vector< string > files )
             hist_primaryEnergyVsPhotonNotThetaC->Fill( gammas[ i ].Primary_E, gammas[ i ].Photon_theta );
         hist_primaryEnergyVsPhotonNotThetaC->Scale(1/double(nParticles));
         hist_primaryEnergyVsPhotonNotThetaC->Draw("COLZ");
+        redrawBorder();
         addBoarder( canvas_c3 );
     }
 
@@ -306,185 +288,223 @@ void make_hists( vector< string > files )
     //// c4 /// X vs Theta /// All /// Normalized ////
     //////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c4 = new TCanvas( "c4", "", 1000, 1000 );
-      canvas_c4->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs All Photon Angles Normalized;" "x [cm];" "#theta [Deg]";
-      TH2D* hist_primaryPositionVsPhotonThetaNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_primaryPositionVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
-      hist_primaryPositionVsPhotonThetaNormalized->Scale(1/double(nParticles));
-      hist_primaryPositionVsPhotonThetaNormalized->Draw("COLZ");
-      addBoarder( canvas_c4 );
+        use_palatte_rainbow_MB();
+        auto size{ gStyle->GetLabelSize() };
+        TCanvas* canvas_c4 = new TCanvas( "c4", "", 1000, 1000 );
+        // canvas_c4->SetLogz();
+        // gStyle->SetLabelSize(.030, "xyz");
+        title = "Primary " + particle_string + " Track Length vs All Photon Angles Normalized;" "s [cm];" "#theta_{#gamma} [Deg]";
+        TH2D* hist_primaryPositionVsPhotonThetaNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            hist_primaryPositionVsPhotonThetaNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
+        hist_primaryPositionVsPhotonThetaNormalized->Scale(1/double(nParticles));
+        hist_primaryPositionVsPhotonThetaNormalized->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c4 );
+        gStyle->SetLabelSize( size, "xyz" );
     }
 
     ///////////////////////////////////////////////////////
     //// c5 /// X vs Theta /// Cerenkov /// Normalized ////
     ///////////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c5 = new TCanvas( "c5", "", 1000, 1000 );
-      canvas_c5->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs Cerenkov Photon Angles Normalized;" "x [cm];" "#theta [Deg]";
-      TH2D* hist_primaryPositionVsPhotonThetaCNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
-          hist_primaryPositionVsPhotonThetaCNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
-      hist_primaryPositionVsPhotonThetaCNormalized->Scale(1/double(nParticles));
-      hist_primaryPositionVsPhotonThetaCNormalized->Draw("COLZ");
-      addBoarder( canvas_c5 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c5 = new TCanvas( "c5", "", 1000, 1000 );
+        canvas_c5->SetLogz();
+        title = "Primary " + particle_string + " Track Length vs Cerenkov Photon Angles Normalized;" "x [cm];" "#theta [Deg]";
+        TH2D* hist_primaryPositionVsPhotonThetaCNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
+            hist_primaryPositionVsPhotonThetaCNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
+        hist_primaryPositionVsPhotonThetaCNormalized->Scale(1/double(nParticles));
+        hist_primaryPositionVsPhotonThetaCNormalized->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c5 );
     }
     
     ///////////////////////////////////////////////////
     //// c6 /// X vs Theta /// All /// !Normalized ////
     ///////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c6 = new TCanvas( "c6", "", 1000, 1000 );
-      canvas_c6->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs All Photon Angles;" "x [cm];" "#theta [Deg]";
-      TH2D* hist_primaryPositionVsPhotonThetaNotNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_primaryPositionVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
-      hist_primaryPositionVsPhotonThetaNotNormalized->Draw("COLZ");
-      addBoarder( canvas_c6 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c6 = new TCanvas( "c6", "", 1000, 1000 );
+        canvas_c6->SetLogz();
+        title = "Primary " + particle_string + " Track Length vs All Photon Angles;" "x [cm];" "#theta [Deg]";
+        TH2D* hist_primaryPositionVsPhotonThetaNotNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            hist_primaryPositionVsPhotonThetaNotNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
+        hist_primaryPositionVsPhotonThetaNotNormalized->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c6 );
     }
     
     /////////////////////////////////////////
     //// c7 /// X vs Theta /// !Cerenkov ////
     /////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c7 = new TCanvas( "c7", "", 1000, 1000 );
-      canvas_c7->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs nonCerenkov Photon Angles;" "x [cm];" "#theta [Deg]";
-      TH2D* hist_primaryPositionVsPhotonNotThetaC = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess != map_process.at( "Cerenkov" ) )
-          hist_primaryPositionVsPhotonNotThetaC->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
-      hist_primaryPositionVsPhotonNotThetaC->Scale(1/double(nParticles));
-      hist_primaryPositionVsPhotonNotThetaC->Draw("COLZ");
-      addBoarder( canvas_c7 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c7 = new TCanvas( "c7", "", 1000, 1000 );
+        canvas_c7->SetLogz();
+        title = "Primary " + particle_string + " Track Length vs nonCerenkov Photon Angles;" "x [cm];" "#theta [Deg]";
+        TH2D* hist_primaryPositionVsPhotonNotThetaC = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_theta, max_Photon_theta );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            if( gammas[ i ].CreationProcess != map_process.at( "Cerenkov" ) )
+            hist_primaryPositionVsPhotonNotThetaC->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_theta );
+        hist_primaryPositionVsPhotonNotThetaC->Scale(1/double(nParticles));
+        hist_primaryPositionVsPhotonNotThetaC->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c7 );
     }
     
     ///////////////////////////////
     //// c8 /// X vs E /// All ////
     ///////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c8 = new TCanvas( "c8", "", 1000, 1000 );
-      canvas_c8->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs All Photon Energies Normalized;" "x [cm];" "E [MeV]";
-      TH2D* hist_primaryPositionVsPhotonEnergyNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_E, max_Photon_E );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_primaryPositionVsPhotonEnergyNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_E );
-      hist_primaryPositionVsPhotonEnergyNormalized->Scale(1/double(nParticles));
-      hist_primaryPositionVsPhotonEnergyNormalized->Draw("COLZ");
-      addBoarder( canvas_c8 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c8 = new TCanvas( "c8", "", 1000, 1000 );
+        canvas_c8->SetLogz();
+        title = "Primary " + particle_string + " Track Length vs All Photon Energies Normalized;" "x [cm];" "E [MeV]";
+        TH2D* hist_primaryPositionVsPhotonEnergyNormalized = new TH2D( "", title.c_str(), nBins, min_Primary_S, max_Primary_S, nBins, min_Photon_E, max_Photon_E );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            hist_primaryPositionVsPhotonEnergyNormalized->Fill( gammas[ i ].Primary_S, gammas[ i ].Photon_E );
+        hist_primaryPositionVsPhotonEnergyNormalized->Scale(1/double(nParticles));
+        hist_primaryPositionVsPhotonEnergyNormalized->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c8 );
     }
     
     //////////////////////////
     //// c9 /// X vs dEdX ////
     //////////////////////////
     if( present_steps ){
-      TCanvas* canvas_c9 = new TCanvas( "c9", "", 1000, 1000 );
-      canvas_c9->SetLogz();
-      title = "Primary " + particle_string + " Track Length vs dEdX;" "x [cm];" "dEdX [MeV/cm]";
-      TH2D* hist_XVsdEdX = new TH2D( "", title.c_str(), nBins, min_X, max_X, nBins, min_dEdX, max_dEdX );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_XVsdEdX->Fill( steps[ i ].X, steps[ i ].dEdX );
-      hist_XVsdEdX->Draw("COLZ");
-      addBoarder( canvas_c9 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c9 = new TCanvas( "c9", "", 1000, 1000 );
+        canvas_c9->SetLogz();
+        title = "Primary " + particle_string + " Track Length vs dEdX;" "s [cm];" "dEdX [MeV/cm]";
+        TH2D* hist_XVsdEdX = new TH2D( "", title.c_str(), nBins, min_X, max_X, nBins, min_dEdX, max_dEdX );
+        for( int i = 0; i < steps.size(); i++ ) 
+            hist_XVsdEdX->Fill( steps[ i ].X, steps[ i ].dEdX );
+        hist_XVsdEdX->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c9 );
     }
     
     //////////////////////////
-    //// c10 /// X vs dEdX ////
+    //// c10 /// E vs dEdX ////
     //////////////////////////
     if( present_steps ){
-      TCanvas* canvas_c10 = new TCanvas( "c10", "", 1000, 1000 );
-      canvas_c10->SetLogz();
-      title = "Primary " + particle_string + " Energy vs dEdX;" "E [MeV];" "dEdX [MeV/cm]";
-      TH2D* hist_EVsdEdX = new TH2D( "", title.c_str(), nBins, min_E, max_E, nBins, min_dEdX, max_dEdX );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_EVsdEdX->Fill( steps[ i ].E, steps[ i ].dEdX );
-      hist_EVsdEdX->Draw("COLZ");
-      addBoarder( canvas_c10 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c10 = new TCanvas( "c10", "", 1000, 1000 );
+        canvas_c10->SetLogz();
+        title = "Primary " + particle_string + " Energy vs dEdX;" "E [MeV];" "dEdX [MeV/cm]";
+        TH2D* hist_EVsdEdX = new TH2D( "", title.c_str(), nBins, min_E, max_E, nBins, min_dEdX, max_dEdX );
+        for( int i = 0; i < steps.size(); i++ ) 
+            hist_EVsdEdX->Fill( steps[ i ].E, steps[ i ].dEdX );
+        hist_EVsdEdX->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c10 );
     }
     
     ////////////////////////////////////////////////////////
     //// c11 /// X vs Theta /// Cerenkov /// Normalized ////
     ////////////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c11 = new TCanvas( "c11", "", 1000, 1000 );
-      //canvas_c11->SetLogz();
-      title = "Cerenkov Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
-      TH2D* hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2/2, 0, 133 );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
-          hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
-      hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
-      hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");
-      addBoarder( canvas_c11 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c11 = new TCanvas( "c11", "", 1000, 1000 );
+        //canvas_c11->SetLogz();
+        title = "Cerenkov Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
+        TH2D* hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2/2, 0, 133 );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) )
+            hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
+        hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
+        hist_primaryPositionVsPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c11 );
     }
     
-    ///////////////////////////
-    //// c12 /// X vs dEdX ////
-    ///////////////////////////
+    //////////////////////////////////////////
+    //// c12 /// X vs dEdX /// Normalized ////
+    //////////////////////////////////////////
     if( present_steps ){
-      TCanvas* canvas_c12 = new TCanvas( "c12", "", 1000, 1000 );
-      title = "Primary " + particle_string + " Track Length vs dEdX Normalized;" "x [cm];" "dEdX [MeV/cm]";
-      TH2D* hist_XVsdEdX_normalized = new TH2D( "", title.c_str(), nBins, min_X, max_X, nBins, min_dEdX, max_dEdX );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_XVsdEdX_normalized->Fill( steps[ i ].X, steps[ i ].dEdX );
-      hist_XVsdEdX_normalized->Draw("COLZ");
-      hist_XVsdEdX_normalized->Scale(1/double(nParticles));
-      addBoarder( canvas_c12 );
+        gStyle->SetLabelSize(.060, "xyz");
+        gStyle->SetLabelOffset(.005, "xyz");
+        gStyle->SetTitleSize(.06, "xyz");
+        gStyle->SetTitleOffset(0.99, "x");
+        gStyle->SetTitleOffset(0.60, "y");
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c12 = new TCanvas( "c12", "", 1000, 1000 );
+        title = "Primary " + particle_string + " Track Length vs dEdX Normalized;" "s [cm];" "dEdX [MeV/cm]";
+        TH2D* hist_XVsdEdX_normalized = new TH2D( "", title.c_str(), nBins/2, min_X, max_X, nBins/2, min_dEdX, max_dEdX );
+        for( int i = 0; i < steps.size(); i++ ) 
+            hist_XVsdEdX_normalized->Fill( steps[ i ].X, steps[ i ].dEdX );
+        hist_XVsdEdX_normalized->Draw("COLZ");
+        hist_XVsdEdX_normalized->Scale(1/double(nParticles));
+        redrawBorder();
+        addBoarder( canvas_c12 );
     }
     
-    ///////////////////////////
-    //// c13 /// E vs dEdX ////
-    ///////////////////////////
+    //////////////////////////////////////////
+    //// c13 /// E vs dEdX /// Normalized ////
+    //////////////////////////////////////////
     if( present_steps ){
-      TCanvas* canvas_c13 = new TCanvas( "c13", "", 1000, 1000 );
-      title = "Primary " + particle_string + " Energy vs dEdX Normalized;" "E [cm];" "dEdX [MeV/cm]";
-      TH2D* hist_EVsdEdX_normalized = new TH2D( "", title.c_str(), nBins, min_E, max_E, nBins, min_dEdX, max_dEdX );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        hist_EVsdEdX_normalized->Fill( steps[ i ].E, steps[ i ].dEdX );
-      hist_EVsdEdX_normalized->Draw("COLZ");
-      hist_EVsdEdX_normalized->Scale(1/double(nParticles));
-      addBoarder( canvas_c13 );
+        gStyle->SetLabelSize(.060, "xyz");
+        gStyle->SetLabelOffset(.005, "xyz");
+        gStyle->SetTitleSize(.06, "xyz");
+        gStyle->SetTitleOffset(0.99, "x");
+        gStyle->SetTitleOffset(0.60, "y");
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c13 = new TCanvas( "c13", "", 1000, 1000 );
+        title = "Primary " + particle_string + " Energy vs dEdX Normalized;" "E [MeV];" "dEdX [MeV/cm]";
+        TH2D* hist_EVsdEdX_normalized = new TH2D( "", title.c_str(), nBins/2, min_E, max_E, nBins/2, min_dEdX, max_dEdX );
+        for( int i = 0; i < steps.size(); i++ ) 
+            hist_EVsdEdX_normalized->Fill( steps[ i ].E, steps[ i ].dEdX );
+        hist_EVsdEdX_normalized->Draw("COLZ");
+        hist_EVsdEdX_normalized->Scale(1/double(nParticles));
+        redrawBorder();
+        addBoarder( canvas_c13 );
     }
     
     ///////////////////////////////////////////////////////////////
     //// c14 /// X vs Theta /// Cerenkov /// mu /// Normalized ////
     ///////////////////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c14 = new TCanvas( "c14", "", 1000, 1000 );
-      //canvas_c14->SetLogz();
-      title = "Cerenkov #mu Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
-      TH2D* hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2, 0, 133 );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) && gammas[ i ].ParentParticle == map_particle.at( "mu" ) )
-          hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
-      hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
-      hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");
-      addBoarder( canvas_c14 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c14 = new TCanvas( "c14", "", 1000, 1000 );
+        //canvas_c14->SetLogz();
+        title = "Cerenkov #mu Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
+        TH2D* hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2, 0, 133 );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            if( gammas[ i ].CreationProcess == map_process.at( "Cerenkov" ) && gammas[ i ].ParentParticle == map_particle.at( "mu" ) )
+            hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
+        hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
+        hist_primaryPositionVsMuPhotonThetaCNormalized_MiniBooNEFormat->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c14 );
     }
     /////////////////////////////////////////////////
     //// c15 /// X vs Theta /// e /// Normalized ////
     /////////////////////////////////////////////////
     if( present_gammas ){
-      TCanvas* canvas_c15 = new TCanvas( "c15", "", 1000, 1000 );
-      //canvas_c15->SetLogz();
-      title = "All e^{-} Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
-      TH2D* hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2, 0, 133 );
-      for( int i = 0; i < gammas.size(); i++ ) 
-        if( gammas[ i ].ParentParticle == map_particle.at( "e" ) )
-          hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
-      hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
-      hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Draw("COLZ");
-      addBoarder( canvas_c15 );
+        use_palatte_rainbow_MB();
+        TCanvas* canvas_c15 = new TCanvas( "c15", "", 1000, 1000 );
+        //canvas_c15->SetLogz();
+        title = "All e^{-} Photon Angles Normalized vs Primary " + particle_string + " Track Length;" "cos(#theta);" "x [cm]";
+        TH2D* hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat = new TH2D( "", title.c_str(), nBins/2, 0, 1, nBins/2/2, 0, 133 );
+        for( int i = 0; i < gammas.size(); i++ ) 
+            if( gammas[ i ].ParentParticle == map_particle.at( "e" ) )
+            hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Fill( cos(gammas[ i ].Photon_theta/180*M_PI), gammas[ i ].Primary_S );
+        hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Scale(1/double(nParticles));
+        hist_primaryPositionVsEPhotonThetaNormalized_MiniBooNEFormat->Draw("COLZ");
+        redrawBorder();
+        addBoarder( canvas_c15 );
     }
     
     //////////////////////////////////////////
     //// c16 /// Possition /// Normalized ////
     //////////////////////////////////////////
     if( present_gammas && nParticles == 1 ){
+        use_palatte_bird();
         gStyle->SetPalette( kBird );
         gStyle->SetLabelSize(.050, "xyz");
         gStyle->SetLabelOffset(.005, "xyz");
@@ -548,16 +568,15 @@ void make_hists( vector< string > files )
         }
         graphs[ 0 ]->SetLineColor  ( kRed );
         graphs[ 0 ]->SetMarkerColor( kRed );
-        addBoarder( canvas_c16 );
-        
-        gStyle->SetNumberContours( NCont + 2 );
-        gStyle->SetPalette( NCont + 2, colors );
+        redrawBorder();
+        addBoarder( canvas_c16 );    
     }
 
     /////////////////////////////////////////////////////
     //// c17 /// E vs Theta /// All /// Normailized /////
     /////////////////////////////////////////////////////
     if( present_gammas ){
+        use_palatte_rainbow_MB();
         gStyle->SetLabelSize(.050, "xyz");
         gStyle->SetLabelOffset(.005, "xyz");
         gStyle->SetTitleSize(.05, "xyz");
@@ -578,6 +597,7 @@ void make_hists( vector< string > files )
         else
             hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 0, 300, "X" );
         hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->Draw("COLZ");
+        redrawBorder();
         addBoarder( canvas_c17 );
 
         graph_cher->SetMarkerStyle( 8 );

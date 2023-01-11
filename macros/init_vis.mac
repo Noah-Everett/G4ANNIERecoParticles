@@ -2,4 +2,4 @@
 /control/saveHistory
 /run/verbose 2
 /run/initialize
-/control/execute vis.mac
+/control/execute macros/vis.mac

@@ -62,6 +62,10 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
     G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
     G4StepPoint* stepPoint_post = step->GetPostStepPoint();
 
+    if( !m_parameterParser->get_record_gammas() && track->GetParticleDefinition()->GetParticleSubType() == "photon" ) {
+        track->SetTrackStatus( fKillTrackAndSecondaries );
+    }
+
     // if primary
     if( m_parameterParser->get_record_gammas() && track->GetParentID() == 0 ) {
         if( track->GetTrackLength() < prev_len )
@@ -106,32 +110,32 @@ void SteppingAction::UserSteppingAction( const G4Step *step )
         analysisManager->AddNtupleRow( 1 );
         track->SetTrackStatus( fKillTrackAndSecondaries );
     }
-
+        
     // if primary particle and crossing boundary
     if( m_parameterParser->get_record_dEdX() && track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) {
         if( first_step ) first_step = false;
         else {
-        auto analysisManager = G4AnalysisManager::Instance();
-        analysisManager->FillNtupleDColumn( 0, 0, track->GetKineticEnergy()/MeV );                         // current energy
-        analysisManager->FillNtupleDColumn( 0, 1, track->GetKineticEnergy()/MeV - prev_boundary_energy );  // delta energy
-        analysisManager->FillNtupleDColumn( 0, 2, track->GetTrackLength()/cm );                            // current track length
-        analysisManager->FillNtupleDColumn( 0, 3, track->GetTrackLength()/cm - prev_boundary_len );        // delta track length
-        analysisManager->FillNtupleDColumn( 0, 4, ( track->GetKineticEnergy()/MeV - prev_boundary_energy ) // dEdX
-                                                    / ( track->GetTrackLength()/cm - prev_boundary_len ) );    
-        analysisManager->AddNtupleRow( 0 );
+            auto analysisManager = G4AnalysisManager::Instance();
+            analysisManager->FillNtupleDColumn( 0, 0, track->GetKineticEnergy()/MeV );                         // current energy
+            analysisManager->FillNtupleDColumn( 0, 1, track->GetKineticEnergy()/MeV - prev_boundary_energy );  // delta energy
+            analysisManager->FillNtupleDColumn( 0, 2, track->GetTrackLength()/cm );                            // current track length
+            analysisManager->FillNtupleDColumn( 0, 3, track->GetTrackLength()/cm - prev_boundary_len );        // delta track length
+            analysisManager->FillNtupleDColumn( 0, 4, ( track->GetKineticEnergy()/MeV - prev_boundary_energy ) // dEdX
+                                                        / ( track->GetTrackLength()/cm - prev_boundary_len ) );    
+            analysisManager->AddNtupleRow( 0 );
         }
         prev_boundary_energy = track->GetKineticEnergy()/MeV;
         prev_boundary_len    = track->GetTrackLength()/cm;
     } 
     // if neutrino
     else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 ||
-            track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
-            track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
-            track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
-            track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
-            track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
-            track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
-            track->GetParticleDefinition()->GetPDGEncoding() == -18 ) {
+             track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
+             track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
+             track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
+             track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
+             track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
+             track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
+             track->GetParticleDefinition()->GetPDGEncoding() == -18 ) {
         track->SetTrackStatus( fKillTrackAndSecondaries );
     }
 }
