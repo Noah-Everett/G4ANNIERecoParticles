@@ -3,9 +3,20 @@
 namespace ANNIERecoParticles {
 
 void DetectorConstruction::ConstructMaterials() {
-    ConstructMaterials_water();
-    ConstructMaterials_water_basic();
-    ConstructMaterials_water_doped();
+    ConstructMaterials_water         ();
+    ConstructMaterials_water_basic   ();
+    ConstructMaterials_water_doped   ();
+    ConstructMaterials_steel         ();
+    ConstructMaterials_stainlessSteel();
+    ConstructMaterials_aluminum      ();
+    ConstructMaterials_C15H24        ();
+    ConstructMaterials_C16H26        ();
+    ConstructMaterials_C17H28        ();
+    ConstructMaterials_C18H30        ();
+    ConstructMaterials_C19H32        ();
+    ConstructMaterials_LAB           ();
+    ConstructMaterials_PPO           ();
+    ConstructMaterials_WbLS_1pct     ();
 }
 
 void DetectorConstruction::ConstructMaterials_water() {
@@ -74,6 +85,76 @@ void DetectorConstruction::ConstructMaterials_stainlessSteel() {
 void DetectorConstruction::ConstructMaterials_aluminum() {
   m_aluminum = new G4Material( "Aluminum", 2.7 * CLHEP::g / CLHEP::cm3, 1 );
   m_aluminum->AddElement( m_element_Al, 1 );
+}
+
+void DetectorConstruction::ConstructMaterials_C15H24() {
+    m_C15H24 = new G4Material( "C15H24", 0.867 * CLHEP::g / CLHEP::cm3, 2 );
+    m_C15H24->AddElement        ( m_element_C, 0.8815 );
+    m_C15H24->AddElement        ( m_element_H, 0.1185 );
+    m_C15H24->SetChemicalFormula( "AROMATIC"          ); 
+}
+
+void DetectorConstruction::ConstructMaterials_C16H26() {
+    m_C16H26 = new G4Material( "C16H26", 0.867 * CLHEP::g / CLHEP::cm3, 2 );
+    m_C16H26->AddElement        ( m_element_C, 0.8799 );
+    m_C16H26->AddElement        ( m_element_H, 0.1201 );
+    m_C16H26->SetChemicalFormula( "AROMATIC"          ); 
+}
+
+void DetectorConstruction::ConstructMaterials_C17H28() {
+    m_C17H28 = new G4Material( "C17H28", 0.867 * CLHEP::g / CLHEP::cm3, 2 );
+    m_C17H28->AddElement        ( m_element_C, 0.8785 );
+    m_C17H28->AddElement        ( m_element_H, 0.1215 );
+    m_C17H28->SetChemicalFormula( "AROMATIC"          ); 
+}
+
+void DetectorConstruction::ConstructMaterials_C18H30() {
+    m_C18H30 = new G4Material( "C18H30", 0.867 * CLHEP::g / CLHEP::cm3, 2 );
+    m_C18H30->AddElement        ( m_element_C, 0.8772 );
+    m_C18H30->AddElement        ( m_element_H, 0.1228 );
+    m_C18H30->SetChemicalFormula( "AROMATIC"          ); 
+}
+
+void DetectorConstruction::ConstructMaterials_C19H32() {
+    m_C19H32 = new G4Material( "C19H32", 0.867 * CLHEP::g / CLHEP::cm3, 2 );
+    m_C19H32->AddElement        ( m_element_C, 0.8761 );
+    m_C19H32->AddElement        ( m_element_H, 0.1239 );
+    m_C19H32->SetChemicalFormula( "AROMATIC"          ); 
+}
+
+void DetectorConstruction::ConstructMaterials_LAB() {
+    m_LAB = new G4Material( "LAB", 0.867 * CLHEP::g / CLHEP::cm3, 5 );
+    m_LAB->AddMaterial( m_C15H24, 0.012 );
+    m_LAB->AddMaterial( m_C16H26, 0.204 );
+    m_LAB->AddMaterial( m_C17H28, 0.432 );
+    m_LAB->AddMaterial( m_C18H30, 0.334 );
+    m_LAB->AddMaterial( m_C19H32, 0.018 );
+}
+
+void DetectorConstruction::ConstructMaterials_PPO() {
+    // missing from RAT???
+}
+
+void DetectorConstruction::ConstructMaterials_WbLS_1pct() {
+    m_WbLS_1pct = new G4Material( "WbLS_1pct", 1.0 * CLHEP::g / CLHEP::cm3, /*3*/2 );
+    m_WbLS_1pct->AddMaterial( m_LAB  , /*0.00997*/0.01 );
+    // m_WbLS_1pct->AddMaterial( m_PPO  , 2.3e-05 );
+    m_WbLS_1pct->AddMaterial( m_water, 0.99    );
+
+    // m_WbLS_mpt->AddConstProperty( "LIGHT_YEILD"       , m_WbLS_mpt_lightYeild                                                                                            );
+    // m_WbLS_mpt->AddProperty     ( "SCINTWAVEFORM"     , m_WbLS_mpt_scintWaveform_energies     , m_WbLS_mpt_scintWaveform_values     , m_WbLS_mpt_scintWaveform_size      );
+    // m_WbLS_mpt->AddConstProperty( "SCINT_RISE_TIME"   , m_WbLS_mpt_scintRiseTime                                                                                         );
+    // m_WbLS_mpt->AddProperty     ( "SCINTWAVEFORMalpha", m_WbLS_mpt_scintWaveformAlpha_energies, m_WbLS_mpt_scintWaveformAlpha_values, m_WbLS_mpt_scintWaveformAlpha_size );
+    // m_WbLS_mpt->AddProperty     ( "SCINTMOD"          , m_WbLS_mpt_scintMod_energies          , m_WbLS_mpt_scintMod_values          , m_WbLS_mpt_scintMod_size           );
+    // m_WbLS_mpt->AddProperty     ( "SCINTMODalpha"     , m_WbLS_mpt_scintModAlpha_energies     , m_WbLS_mpt_scintModAlpha_values     , m_WbLS_mpt_scintModAlpha_size      );
+    // m_WbLS_mpt->AddProperty     ( "SCINTMODneutron"   , m_WbLS_mpt_scintModNeutron_energies   , m_WbLS_mpt_scintModNeutron_values   , m_WbLS_mpt_scintModNeutron_size    );
+    m_WbLS_mpt->AddProperty     ( "RINDEX"            , m_WbLS_mpt_refIndex_energies          , m_WbLS_mpt_refIndex_values          , m_WbLS_mpt_refIndex_size           );
+    // m_WbLS_mpt->AddProperty     ( "SCINTILLATION"     , m_WbLS_mpt_scintillation_energies     , m_WbLS_mpt_scintillation_values     , m_WbLS_mpt_scintillation_size      );
+    // m_WbLS_mpt->AddProperty     ( "SCINTILLATION_WLS" , m_WbLS_mpt_scintillationWLS_energies  , m_WbLS_mpt_scintillationWLS_values  , m_WbLS_mpt_scintillationWLS_size   );
+    m_WbLS_mpt->AddProperty     ( "ABSLENGTH"         , m_WbLS_mpt_absLength_energies         , m_WbLS_mpt_absLength_values         , m_WbLS_mpt_absLength_size          );
+    // m_WbLS_mpt->AddProperty     ( "RSLENGTH"          , m_WbLS_mpt_rsLength_energies          , m_WbLS_mpt_rsLength_values          , m_WbLS_mpt_rsLength_size           );
+    // m_WbLS_mpt->AddProperty     ( "REEMISSION_PROB"   , m_WbLS_mpt_reemissionProb_energies    , m_WbLS_mpt_reemissionProb_values    , m_WbLS_mpt_reemissionProb_size     );
+    m_WbLS_1pct->SetMaterialPropertiesTable( m_WbLS_mpt );
 }
 
 }
