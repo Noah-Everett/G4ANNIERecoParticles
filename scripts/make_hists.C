@@ -16,12 +16,10 @@ const double n_sci  { 1.500 }; //
 const double m_mu   { 105.7 }; // MeV/c^2
 const double m_e    { 0.511 }; // MeV/c^2
 
-int particle  { 0 }; // 0 = muon, 1 = electron
-int nBins     { 200 };
-int nParticles{ 10000 };
+int particle  { -1 }; // 0 = muon, 1 = electron
+int nBins     { 500 };
+int nParticles{ 0 };
 double n      { n_water };
-double m{ ( particle == 0 ) ? m_mu : m_e };
-string particle_string{ ( particle == 0 ) ? "Muon" : "Electron" };
 
 
 const map< string, int > map_process  = { { "Cerenkov"            , 0 },
@@ -81,13 +79,19 @@ void addBoarder( TCanvas*& canvas )
     canvas->SetWindowSize  (1200,1200);
 }
 
-void make_hists( vector< string > files )
+void make_hists( vector< string > files, int nPtl, int nLtn )
 {
+    nParticles = nPtl;
+    particle   = nLtn;
+    double m{ ( particle == 0 ) ? m_mu : m_e };
+    string particle_string{ ( particle == 0 ) ? "Muon" : "Electron" };
+
     cout << "#========== SETTINGS ==========#" << endl;
     cout << "  Using mass: " << m << endl;
     cout << "  Using n: " << n << endl;
     cout << "  Using nBins: " << nBins << endl;
     cout << "  Using nParticles: " << nParticles << endl;
+    cout << "  Using Particle: " << particle_string << endl;
     cout << "#==============================#" << endl;
     cout << endl;
 
@@ -427,11 +431,11 @@ void make_hists( vector< string > files )
     //// c12 /// X vs dEdX /// Normalized ////
     //////////////////////////////////////////
     if( present_steps ){
-        gStyle->SetLabelSize(.060, "xyz");
-        gStyle->SetLabelOffset(.005, "xyz");
-        gStyle->SetTitleSize(.06, "xyz");
-        gStyle->SetTitleOffset(0.99, "x");
-        gStyle->SetTitleOffset(0.60, "y");
+        //gStyle->SetLabelSize(.060, "xyz");
+        //gStyle->SetLabelOffset(.005, "xyz");
+        //gStyle->SetTitleSize(.06, "xyz");
+        //gStyle->SetTitleOffset(0.99, "x");
+        //gStyle->SetTitleOffset(0.60, "y");
         use_palatte_rainbow_MB();
         TCanvas* canvas_c12 = new TCanvas( "c12", "", 1000, 1000 );
         title = "Primary " + particle_string + " Track Length vs dEdX Normalized;" "s [cm];" "dEdX [MeV/cm]";
@@ -448,11 +452,11 @@ void make_hists( vector< string > files )
     //// c13 /// E vs dEdX /// Normalized ////
     //////////////////////////////////////////
     if( present_steps ){
-        gStyle->SetLabelSize(.060, "xyz");
-        gStyle->SetLabelOffset(.005, "xyz");
-        gStyle->SetTitleSize(.06, "xyz");
-        gStyle->SetTitleOffset(0.99, "x");
-        gStyle->SetTitleOffset(0.60, "y");
+//        gStyle->SetLabelSize(.060, "xyz");
+//        gStyle->SetLabelOffset(.005, "xyz");
+//        gStyle->SetTitleSize(.06, "xyz");
+//        gStyle->SetTitleOffset(0.99, "x");
+//        gStyle->SetTitleOffset(0.60, "y");
         use_palatte_rainbow_MB();
         TCanvas* canvas_c13 = new TCanvas( "c13", "", 1000, 1000 );
         title = "Primary " + particle_string + " Energy vs dEdX Normalized;" "E [MeV];" "dEdX [MeV/cm]";
@@ -593,9 +597,9 @@ void make_hists( vector< string > files )
         hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->Scale(1/double(nParticles));
         hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 0, 90, "Y" );
         if( particle == 0 )
-            hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 49, 300, "X" );
+            hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 49, 299, "X" );
         else
-            hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 0, 300, "X" );
+            hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->SetAxisRange( 0, 299, "X" );
         hist_primaryEnergyVsPhotonThetaNormalized_GoldwaterFormat->Draw("COLZ");
         redrawBorder();
         addBoarder( canvas_c17 );
