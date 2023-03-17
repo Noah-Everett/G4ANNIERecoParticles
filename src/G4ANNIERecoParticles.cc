@@ -70,7 +70,6 @@ int main(int argc, char** argv)
     G4VisManager* visManager = new G4VisExecutive;
     visManager->Initialize();
     if( !ui ) {
-        G4String command = "/control/execute ";
         G4String fileName = argv[ 2 ];
         UImanager->ApplyCommand( command + fileName );
     } else {

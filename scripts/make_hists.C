@@ -70,7 +70,7 @@ double fitFunction( double* x, double* par )
     return x[0]*par[0] + x[1]*par[0];
 }
 
-void addBoarder( TCanvas*& canvas )
+void addBoarder( TCanvas* canvas )
 {
     canvas->SetTopMargin   (0.17);
     canvas->SetBottomMargin(0.17);

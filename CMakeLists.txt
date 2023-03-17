@@ -16,7 +16,7 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
-find_package( ROOT REQUIRED COMPONENTS Geom )
+find_package(ROOT REQUIRED COMPONENTS Geom)
 
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions

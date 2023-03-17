@@ -46,18 +46,23 @@ namespace ANNIERecoParticles
 
 class RunAction : public G4UserRunAction
 {
-  public:
+public:
     RunAction();
-    ~RunAction() override;
+   ~RunAction() override;
 
     void BeginOfRunAction(const G4Run*) override;
     void   EndOfRunAction(const G4Run*) override;
 
-    void Add_dEdX( G4double dE, G4double dx );
+    inline void incrament_hist_dEdX_nEnteries             () { ++m_hist_dEdX_nEnteries             ; }
+    inline void incrament_hist_emission_energies_nEnteries() { ++m_hist_emission_energies_nEnteries; }
+    inline void incrament_hist_transmittance_nEnteries    () { ++m_hist_transmittance_nEnergies    ; }
 
-  private:
-    std::vector< G4double > dEs;
-    std::vector< G4double > dxs;
+private:
+    G4AnalysisManager* m_analysisManager = G4AnalysisManager::Instance();
+
+    G4int m_hist_dEdX_nEnteries             { 0 };
+    G4int m_hist_emission_energies_nEnteries{ 0 };
+    G4int m_hist_transmittance_nEnergies    { 0 };
 };
 
 }

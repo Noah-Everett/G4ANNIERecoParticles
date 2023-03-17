@@ -42,6 +42,7 @@
 #include "G4SystemOfUnits.hh"
 
 #include <map>
+#include <cmath>
 
 namespace ANNIERecoParticles
 {
@@ -50,34 +51,42 @@ namespace ANNIERecoParticles
 
 RunAction::RunAction()
 {
-  auto analysisManager = G4AnalysisManager::Instance();
-  analysisManager->SetDefaultFileType("root");
-  analysisManager->SetVerboseLevel(1);
-  analysisManager->SetFileName("G4ANNIERecoParticles");
-  
-  analysisManager->SetNtupleMerging(true);
-  analysisManager->OpenFile();
-  
-  analysisManager->CreateNtuple("G4ANNIERecoParticles", "dEdX");
-  analysisManager->CreateNtupleDColumn("E");
-  analysisManager->CreateNtupleDColumn("dE");
-  analysisManager->CreateNtupleDColumn("X");
-  analysisManager->CreateNtupleDColumn("dX");
-  analysisManager->CreateNtupleDColumn("dEdX");
-  analysisManager->FinishNtuple();
+    m_analysisManager->SetDefaultFileType("root");
+    m_analysisManager->SetVerboseLevel(1);
+    m_analysisManager->SetFileName("G4ANNIERecoParticles");
 
-  analysisManager->CreateNtuple("G4ANNIERecoParticles", "Photons");
-  analysisManager->CreateNtupleDColumn("Primary_E");
-  analysisManager->CreateNtupleDColumn("Primary_S");
-  analysisManager->CreateNtupleDColumn("Photon_theta");
-  analysisManager->CreateNtupleDColumn("Photon_E");
-  analysisManager->CreateNtupleIColumn("CreationProcess");
-  analysisManager->CreateNtupleIColumn("ParentParticle");
-  analysisManager->CreateNtupleDColumn("Parent_X");
-  analysisManager->CreateNtupleDColumn("Parent_Y");
-  analysisManager->CreateNtupleDColumn("Parent_Z");
-  analysisManager->CreateNtupleIColumn("IsFirstStep");
-  analysisManager->FinishNtuple();
+    m_analysisManager->SetNtupleMerging(true);
+    m_analysisManager->OpenFile();
+
+    m_analysisManager->CreateH1("G4ANNIERecoParticles", "hist_dEdX"             , 110 , -100, 10                   );
+    m_analysisManager->CreateH2("G4ANNIERecoParticles", "hist_emission_counts"  , 1000, 0   , 1200, 100, 0, 2*M_PI );
+    m_analysisManager->CreateH2("G4ANNIERecoParticles", "hist_emission_energies", 1000, 0   , 1200, 100, 0, 2*M_PI );
+    m_analysisManager->CreateH1("G4ANNIERecoParticles", "hist_transmittance"    , 1000, 0   , 1000                 );
+
+    m_analysisManager->CreateNtuple("G4ANNIERecoParticles", "tuple_dEdX");
+    m_analysisManager->CreateNtupleDColumn("E");
+    m_analysisManager->CreateNtupleDColumn("dE");
+    m_analysisManager->CreateNtupleDColumn("X");
+    m_analysisManager->CreateNtupleDColumn("dX");
+    m_analysisManager->CreateNtupleDColumn("dEdX");
+    m_analysisManager->FinishNtuple();
+
+    m_analysisManager->CreateNtuple("G4ANNIERecoParticles", "tuple_emission");
+    m_analysisManager->CreateNtupleDColumn("Primary_E");
+    m_analysisManager->CreateNtupleDColumn("Primary_S");
+    m_analysisManager->CreateNtupleDColumn("Photon_theta");
+    m_analysisManager->CreateNtupleDColumn("Photon_E");
+    m_analysisManager->CreateNtupleIColumn("CreationProcess");
+    m_analysisManager->CreateNtupleIColumn("ParentParticle");
+    m_analysisManager->CreateNtupleDColumn("Parent_X");
+    m_analysisManager->CreateNtupleDColumn("Parent_Y");
+    m_analysisManager->CreateNtupleDColumn("Parent_Z");
+    m_analysisManager->FinishNtuple();
+
+    m_analysisManager->CreateNtuple("G4ANNIERecoParticles", "tuple_tranmittance");
+    m_analysisManager->CreateNtupleDColumn("TrackLength");
+    m_analysisManager->CreateNtupleDColumn("Energy");
+    m_analysisManager->FinishNtuple();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -96,9 +105,14 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
 void RunAction::EndOfRunAction(const G4Run* run)
 {
-  auto analysisManager = G4AnalysisManager::Instance();
-  analysisManager->Write();
-  analysisManager->CloseFile();
+    auto m_analysisManager = G4AnalysisManager::Instance();
+
+    if( m_hist_dEdX_nEnteries              > 0 ) m_analysisManager->ScaleH1( 0, 1 / m_hist_dEdX_nEnteries              );
+    if( m_hist_emission_energies_nEnteries > 0 ) m_analysisManager->ScaleH1( 2, 1 / m_hist_emission_energies_nEnteries );
+    if( m_hist_transmittance_nEnergies     > 0 ) m_analysisManager->ScaleH1( 3, 1 / m_hist_transmittance_nEnergies     );
+
+    m_analysisManager->Write();
+    m_analysisManager->CloseFile();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

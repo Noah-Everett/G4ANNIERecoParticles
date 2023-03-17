@@ -32,11 +32,11 @@
 #include "DetectorConstruction.hh"
 #include "Maps.hh"
 
-#include "G4Step.hh"
 #include "G4Event.hh"
 #include "G4RunManager.hh"
 #include "G4LogicalVolume.hh"
-#include"G4SystemOfUnits.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4ProcessTable.hh"
 
 #include<cmath>
 
@@ -56,88 +56,138 @@ SteppingAction::~SteppingAction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void SteppingAction::UserSteppingAction( const G4Step *step )
+void SteppingAction::UserSteppingAction( const G4Step* t_step )
 {
-    G4Track* track = step->GetTrack();
-    G4StepPoint* stepPoint_pre  = step->GetPreStepPoint();
-    G4StepPoint* stepPoint_post = step->GetPostStepPoint();
+    m_track          = t_step->GetTrack        ();
+    m_stepPoint_prev = t_step->GetPreStepPoint ();
+    m_stepPoint_post = t_step->GetPostStepPoint();
 
-    if( !m_parameterParser->get_record_gammas() && track->GetParticleDefinition()->GetParticleSubType() == "photon" ) {
-        track->SetTrackStatus( fKillTrackAndSecondaries );
+    if( kill_neutrino() ) return;
+    if( ( !m_parameterParser->get_record_emission() 
+       || !m_parameterParser->get_record_transmittance() ) 
+       && kill_photon() ) return;
+
+    if( m_parameterParser->get_record_dEdX() ) {
+        if( is_newPrimary() ) m_dEdX_newPrimary = true;
+        m_dEdX_energy_curr      = m_track->GetKineticEnergy() / MeV;
+        m_dEdX_trackLength_curr = m_track->GetTrackLength  () / m  ;
+
+        if( !m_dEdX_newPrimary && m_track->GetParentID() == 0 && m_stepPoint_post->GetStepStatus() == fGeomBoundary ) {
+            m_dEdX_dE   = m_dEdX_energy_curr      - m_dEdX_energy_prev     ;
+            m_dEdX_dX   = m_dEdX_trackLength_curr - m_dEdX_trackLength_prev;
+            m_dEdX_dEdX = m_dEdX_dE               / m_dEdX_dX              ;
+
+            if( m_parameterParser->get_make_tuple_dEdX() ) make_tuple_dEdX();
+            if( m_parameterParser->get_make_hist_dEdX () ) make_hist_dEdX ();
+        }
+
+        m_dEdX_newPrimary       = false                  ;
+        m_dEdX_energy_prev      = m_dEdX_energy_curr     ;
+        m_dEdX_trackLength_prev = m_dEdX_trackLength_curr;
     }
 
-    // if primary
-    if( m_parameterParser->get_record_gammas() && track->GetParentID() == 0 ) {
-        if( track->GetTrackLength() < prev_len )
-            isFirstStep = true;
-        prev_len = track->GetTrackLength()/cm;
-        prev_ke  = track->GetKineticEnergy()/MeV;
-    }
-    // if not photon
-    if( m_parameterParser->get_record_gammas() && track->GetParticleDefinition()->GetParticleSubType() != "photon" ) {
-        prev_particle = track->GetParticleDefinition()->GetParticleSubType();
-        prev_x = track->GetPosition().x()/cm;
-        prev_y = track->GetPosition().y()/cm;
-        prev_z = track->GetPosition().z()/cm;
-    }
-    // if photon
-    else if( m_parameterParser->get_record_gammas() ) {
-        auto analysisManager = G4AnalysisManager::Instance();
-        analysisManager->FillNtupleDColumn( 1, 0, prev_ke );
-        analysisManager->FillNtupleDColumn( 1, 1, prev_len );
-        analysisManager->FillNtupleDColumn( 1, 2, acos( track->GetMomentumDirection().x()/cm / ( track->GetMomentumDirection().mag()/cm ) ) / M_PI * 180 );
-        analysisManager->FillNtupleDColumn( 1, 3, track->GetTotalEnergy()/MeV );
-        if( map_process.find( track->GetCreatorProcess()->GetProcessName() ) != map_process.end() )
-            analysisManager->FillNtupleIColumn( 1, 4, map_process.at( track->GetCreatorProcess()->GetProcessName() ) );
-        else {
-            G4cout << "Not in map_process: " << track->GetCreatorProcess()->GetProcessName() << G4endl;
-            analysisManager->FillNtupleIColumn( 1, 4, -999999 );
+    if( m_parameterParser->get_record_emission() ) {
+        if( m_track->GetParentID() == 0 ) {
+            m_emission_prevPrimary_energy              = m_track->GetTotalEnergy      () / MeV;
+            m_emission_prevPrimary_trackLength         = m_track->GetTrackLength      () / MeV;
+            m_emission_prevPrimary_momentumThreeVector = m_track->GetMomentumDirection()      ;
         }
-        if( map_particle.find( prev_particle ) != map_particle.end() )
-            analysisManager->FillNtupleIColumn( 1, 5, map_particle.at( prev_particle ) );
+        if( m_track->GetParticleDefinition()->GetPDGEncoding() != 22 )
+            m_emission_prevPrimary_positionThreeVector = m_track->GetPosition();
         else {
-            G4cout << "Not in map_particle: " << prev_particle << G4endl;
-            analysisManager->FillNtupleIColumn( 1, 5, -999999 );
+            m_emission_angle  = m_track->GetMomentumDirection().angle( m_emission_prevPrimary_momentumThreeVector );
+            m_emission_energy = m_track->GetTotalEnergy() / MeV;
+            if( m_parameterParser->get_make_tuple_emission() ) make_tuple_emission();
+            if( m_parameterParser->get_make_hist_emission () ) make_hist_emission ();
+            m_track->SetTrackStatus( fKillTrackAndSecondaries );
         }
-        analysisManager->FillNtupleDColumn( 1, 6, prev_x );
-        analysisManager->FillNtupleDColumn( 1, 7, prev_y );
-        analysisManager->FillNtupleDColumn( 1, 8, prev_z );
-        if( isFirstStep )
-            analysisManager->FillNtupleIColumn( 1, 9, true );
-        else 
-            analysisManager->FillNtupleIColumn( 1, 9, false );
-        isFirstStep = false;
-        analysisManager->AddNtupleRow( 1 );
-        track->SetTrackStatus( fKillTrackAndSecondaries );
     }
-        
-    // if primary particle and crossing boundary
-    if( m_parameterParser->get_record_dEdX() && track->GetParentID() == 0 && stepPoint_post->GetStepStatus() == 1 ) {
-        if( first_step ) first_step = false;
-        else {
-            auto analysisManager = G4AnalysisManager::Instance();
-            analysisManager->FillNtupleDColumn( 0, 0, track->GetKineticEnergy()/MeV );                         // current energy
-            analysisManager->FillNtupleDColumn( 0, 1, track->GetKineticEnergy()/MeV - prev_boundary_energy );  // delta energy
-            analysisManager->FillNtupleDColumn( 0, 2, track->GetTrackLength()/cm );                            // current track length
-            analysisManager->FillNtupleDColumn( 0, 3, track->GetTrackLength()/cm - prev_boundary_len );        // delta track length
-            analysisManager->FillNtupleDColumn( 0, 4, ( track->GetKineticEnergy()/MeV - prev_boundary_energy ) // dEdX
-                                                        / ( track->GetTrackLength()/cm - prev_boundary_len ) );    
-            analysisManager->AddNtupleRow( 0 );
-        }
-        prev_boundary_energy = track->GetKineticEnergy()/MeV;
-        prev_boundary_len    = track->GetTrackLength()/cm;
-    } 
-    // if neutrino
-    else if( track->GetParticleDefinition()->GetPDGEncoding() ==  12 ||
-             track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
-             track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
-             track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
-             track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
-             track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
-             track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
-             track->GetParticleDefinition()->GetPDGEncoding() == -18 ) {
-        track->SetTrackStatus( fKillTrackAndSecondaries );
+
+    if( m_parameterParser->get_record_transmittance() &&
+        m_track->GetParentID() == 0 && m_track->GetParticleDefinition()->GetPDGEncoding() == 22 ) {
+        if( is_newPrimary() ) m_transmittance_initEnergy = m_track->GetTotalEnergy() / MeV;
+        m_transmittance_trackLength = m_track->GetTrackLength();
+        if( m_parameterParser->get_make_tuple_transmittance() ) make_tuple_transmittance();
+        if( m_parameterParser->get_make_hist_transmittance () ) make_hist_transmittance ();
     }
 }
 
-};
+inline void SteppingAction::make_tuple_dEdX() {
+    m_analysisManager->FillNtupleDColumn( 0, 0, m_dEdX_energy_curr      );
+    m_analysisManager->FillNtupleDColumn( 0, 1, m_dEdX_dE               );
+    m_analysisManager->FillNtupleDColumn( 0, 2, m_dEdX_trackLength_curr );
+    m_analysisManager->FillNtupleDColumn( 0, 3, m_dEdX_dX               );
+    m_analysisManager->FillNtupleDColumn( 0, 4, m_dEdX_dEdX             );
+    m_analysisManager->AddNtupleRow( 0 );
+}
+
+inline void SteppingAction::make_hist_dEdX() {
+    m_analysisManager->FillH1( 0, m_dEdX_energy_prev, m_dEdX_dEdX );
+    m_runAction->incrament_hist_dEdX_nEnteries();
+}
+
+inline void SteppingAction::make_tuple_emission() {
+    m_analysisManager->FillNtupleDColumn( 1, 0, m_emission_prevPrimary_energy                      );
+    m_analysisManager->FillNtupleDColumn( 1, 1, m_emission_prevPrimary_trackLength                 );
+    m_analysisManager->FillNtupleDColumn( 1, 2, m_emission_angle                                   );
+    m_analysisManager->FillNtupleDColumn( 1, 3, m_track->GetTotalEnergy() / MeV                    );
+    m_analysisManager->FillNtupleIColumn( 1, 4, m_track->GetDefinition()->GetProcessManager()->GetProcessIndex( const_cast< G4VProcess* >( m_track->GetCreatorProcess() ) ) );
+    m_analysisManager->FillNtupleIColumn( 1, 5, m_track->GetParticleDefinition()->GetPDGEncoding() );
+    m_analysisManager->FillNtupleDColumn( 1, 6, m_emission_prevPrimary_positionThreeVector.x()     );
+    m_analysisManager->FillNtupleDColumn( 1, 7, m_emission_prevPrimary_positionThreeVector.y()     );
+    m_analysisManager->FillNtupleDColumn( 1, 8, m_emission_prevPrimary_positionThreeVector.z()     );
+    m_analysisManager->AddNtupleRow( 1 );
+}
+
+inline void SteppingAction::make_hist_emission() {
+    m_analysisManager->FillH2( 1, m_emission_prevPrimary_energy, m_emission_angle, 1                 );
+    m_analysisManager->FillH2( 2, m_emission_prevPrimary_energy, m_emission_angle, m_emission_energy );
+    m_runAction->incrament_hist_emission_energies_nEnteries();
+}
+
+inline void SteppingAction::make_tuple_transmittance() {
+    m_analysisManager->FillNtupleDColumn( 2, 0, m_transmittance_trackLength     );
+    m_analysisManager->FillNtupleDColumn( 2, 1, m_track->GetTotalEnergy() / MeV );
+}
+
+inline void SteppingAction::make_hist_transmittance() {
+    m_analysisManager->FillH1( 3, m_transmittance_initEnergy, 1 );
+}
+
+inline bool SteppingAction::kill_neutrino() {
+    if( m_track->GetParticleDefinition()->GetPDGEncoding() ==  12 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() == -12 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() ==  14 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() == -14 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() ==  16 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() == -16 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() ==  18 ||
+        m_track->GetParticleDefinition()->GetPDGEncoding() == -18   ) {
+        m_track->SetTrackStatus( fKillTrackAndSecondaries );
+        return true;
+    }
+    return false;
+}
+
+inline bool SteppingAction::kill_photon() {
+    if( m_track->GetParticleDefinition()->GetPDGEncoding() == 22 ) {
+        m_track->SetTrackStatus( fKillTrackAndSecondaries );
+        return true;
+    }
+    return false;
+}
+
+inline bool SteppingAction::is_newPrimary() {
+    if( m_parameterParser->get_record_dEdX() ) {
+        if( m_track->GetParentID() == 0 && m_track->GetTrackLength() < m_dEdX_trackLength_prev )
+            return true;
+        return false;
+    } else if( m_parameterParser->get_record_transmittance() ) {
+        if( m_track->GetParentID() == 0 && m_track->GetTrackLength() < m_transmittance_trackLength )
+            return true;
+        return false;
+    } else
+        return false;
+}
+
+}
