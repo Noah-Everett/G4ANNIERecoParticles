@@ -1,4 +1,9 @@
 /ANNIERecoParticles/material WbLS_1pct
 #/ANNIERecoParticles/material water_doped
-/ANNIERecoParticles/record/dEdX 0
-/ANNIERecoParticles/record/gammas 1
+
+/ANNIERecoParticles/make/tuple/dEdX          0
+/ANNIERecoParticles/make/tuple/emission      0
+/ANNIERecoParticles/make/tuple/transmittance 0
+/ANNIERecoParticles/make/hist/dEdX           0
+/ANNIERecoParticles/make/hist/emission       1
+/ANNIERecoParticles/make/hist/transmittance  0

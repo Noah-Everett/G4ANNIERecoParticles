@@ -64,13 +64,14 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
 
     if( kill_neutrino() ) return;
     if( ( !m_parameterParser->get_record_emission() 
-       || !m_parameterParser->get_record_transmittance() ) 
-       && kill_photon() ) return;
+       && !m_parameterParser->get_record_transmittance() ) 
+       && kill_photon() )
+        return;
 
     if( m_parameterParser->get_record_dEdX() ) {
         if( is_newPrimary() ) m_dEdX_newPrimary = true;
-        m_dEdX_energy_curr      = m_track->GetKineticEnergy() / MeV;
-        m_dEdX_trackLength_curr = m_track->GetTrackLength  () / m  ;
+        m_dEdX_energy_curr      = m_track->GetKineticEnergy();
+        m_dEdX_trackLength_curr = m_track->GetTrackLength  ();
 
         if( !m_dEdX_newPrimary && m_track->GetParentID() == 0 && m_stepPoint_post->GetStepStatus() == fGeomBoundary ) {
             m_dEdX_dE   = m_dEdX_energy_curr      - m_dEdX_energy_prev     ;
@@ -88,15 +89,15 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
 
     if( m_parameterParser->get_record_emission() ) {
         if( m_track->GetParentID() == 0 ) {
-            m_emission_prevPrimary_energy              = m_track->GetTotalEnergy      () / MeV;
-            m_emission_prevPrimary_trackLength         = m_track->GetTrackLength      () / MeV;
-            m_emission_prevPrimary_momentumThreeVector = m_track->GetMomentumDirection()      ;
+            m_emission_prevPrimary_energy              = m_track->GetTotalEnergy      ();
+            m_emission_prevPrimary_trackLength         = m_track->GetTrackLength      ();
+            m_emission_prevPrimary_momentumThreeVector = m_track->GetMomentumDirection();
         }
-        if( m_track->GetParticleDefinition()->GetPDGEncoding() != 22 )
+        if( abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) != 22 )
             m_emission_prevPrimary_positionThreeVector = m_track->GetPosition();
         else {
             m_emission_angle  = m_track->GetMomentumDirection().angle( m_emission_prevPrimary_momentumThreeVector );
-            m_emission_energy = m_track->GetTotalEnergy() / MeV;
+            m_emission_energy = m_track->GetTotalEnergy() / eV;
             if( m_parameterParser->get_make_tuple_emission() ) make_tuple_emission();
             if( m_parameterParser->get_make_hist_emission () ) make_hist_emission ();
             m_track->SetTrackStatus( fKillTrackAndSecondaries );
@@ -104,11 +105,13 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
     }
 
     if( m_parameterParser->get_record_transmittance() &&
-        m_track->GetParentID() == 0 && m_track->GetParticleDefinition()->GetPDGEncoding() == 22 ) {
-        if( is_newPrimary() ) m_transmittance_initEnergy = m_track->GetTotalEnergy() / MeV;
+        m_track->GetParentID() == 0 && abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) == 22 ) {
+        if( is_newPrimary() ) {
+            m_transmittance_initEnergy = m_track->GetTotalEnergy();
+            if( m_parameterParser->get_make_hist_transmittance () ) make_hist_transmittance ();
+        }
         m_transmittance_trackLength = m_track->GetTrackLength();
         if( m_parameterParser->get_make_tuple_transmittance() ) make_tuple_transmittance();
-        if( m_parameterParser->get_make_hist_transmittance () ) make_hist_transmittance ();
     }
 }
 
@@ -130,7 +133,7 @@ inline void SteppingAction::make_tuple_emission() {
     m_analysisManager->FillNtupleDColumn( 1, 0, m_emission_prevPrimary_energy                      );
     m_analysisManager->FillNtupleDColumn( 1, 1, m_emission_prevPrimary_trackLength                 );
     m_analysisManager->FillNtupleDColumn( 1, 2, m_emission_angle                                   );
-    m_analysisManager->FillNtupleDColumn( 1, 3, m_track->GetTotalEnergy() / MeV                    );
+    m_analysisManager->FillNtupleDColumn( 1, 3, m_track->GetTotalEnergy()                          );
     m_analysisManager->FillNtupleIColumn( 1, 4, m_track->GetDefinition()->GetProcessManager()->GetProcessIndex( const_cast< G4VProcess* >( m_track->GetCreatorProcess() ) ) );
     m_analysisManager->FillNtupleIColumn( 1, 5, m_track->GetParticleDefinition()->GetPDGEncoding() );
     m_analysisManager->FillNtupleDColumn( 1, 6, m_emission_prevPrimary_positionThreeVector.x()     );
@@ -140,18 +143,22 @@ inline void SteppingAction::make_tuple_emission() {
 }
 
 inline void SteppingAction::make_hist_emission() {
-    m_analysisManager->FillH2( 1, m_emission_prevPrimary_energy, m_emission_angle, 1                 );
-    m_analysisManager->FillH2( 2, m_emission_prevPrimary_energy, m_emission_angle, m_emission_energy );
-    m_runAction->incrament_hist_emission_energies_nEnteries();
+    m_analysisManager->FillH2( 0, m_emission_prevPrimary_trackLength, m_emission_angle, 1                 );
+    if( m_emission_energy > 200 ) {
+        G4cout << "Warning: Large emission energy of " << m_emission_energy << " eV" << G4endl;
+        m_emission_energy = 0;
+    } else
+        m_runAction->incrament_hist_emission_energies_nEnteries();
+    m_analysisManager->FillH2( 1, m_emission_prevPrimary_trackLength, m_emission_angle, m_emission_energy );
 }
 
 inline void SteppingAction::make_tuple_transmittance() {
-    m_analysisManager->FillNtupleDColumn( 2, 0, m_transmittance_trackLength     );
-    m_analysisManager->FillNtupleDColumn( 2, 1, m_track->GetTotalEnergy() / MeV );
+    m_analysisManager->FillNtupleDColumn( 2, 0, m_transmittance_trackLength );
+    m_analysisManager->FillNtupleDColumn( 2, 1, m_track->GetTotalEnergy()   );
 }
 
 inline void SteppingAction::make_hist_transmittance() {
-    m_analysisManager->FillH1( 3, m_transmittance_initEnergy, 1 );
+    m_analysisManager->FillH1( 1, m_transmittance_trackLength, 1 );
 }
 
 inline bool SteppingAction::kill_neutrino() {
@@ -170,7 +177,7 @@ inline bool SteppingAction::kill_neutrino() {
 }
 
 inline bool SteppingAction::kill_photon() {
-    if( m_track->GetParticleDefinition()->GetPDGEncoding() == 22 ) {
+    if( abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) == 22 ) {
         m_track->SetTrackStatus( fKillTrackAndSecondaries );
         return true;
     }

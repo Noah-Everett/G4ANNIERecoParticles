@@ -93,7 +93,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double size_dX;
     if( m_parameterParser->get_record_dEdX() ) {
         // size_dX = 0.00001 * m; // for real runs (10um)
-        size_dX = 0.001 * m; // for real runs (10mm)
+        // size_dX = 0.001 * m; // for real runs (10mm)
+        size_dX = m_parameterParser->get_stepVolumeWidth();
     } else
         size_dX = size_X; // one volume
 
