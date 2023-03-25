@@ -60,7 +60,8 @@ RunAction::RunAction()
 
     new G4UnitDefinition( "MeV/m", "MeV/m", "Energy/Length", MeV/m );
 
-    m_analysisManager->CreateH1("hist_dEdX"             , "hist_dEdX"             , 110 , -100, 10                  , "MeV/m"        );
+    m_analysisManager->CreateH1("hist_dEdX_dEdX"        , "hist_dEdX_dEdX"        , 1000, 0   , 1200                , "MeV/m"        );
+    m_analysisManager->CreateH1("hist_dEdX_counts"      , "hist_dEdX_counts"      , 1000, 0   , 1200                                 );
     m_analysisManager->CreateH2("hist_emission_counts"  , "hist_emission_counts"  , 1000, 0   , 1200, 100, 0, 2*M_PI, "m"    , "rad" );
     m_analysisManager->CreateH2("hist_emission_energies", "hist_emission_energies", 1000, 0   , 1200, 100, 0, 2*M_PI, "m"    , "rad" );
     m_analysisManager->CreateH1("hist_transmittance"    , "hist_transmittance"    , 1000, 0   , 1000                , "m"            );
@@ -114,9 +115,13 @@ void RunAction::EndOfRunAction(const G4Run* run)
     // if( m_hist_emission_energies_nEnteries > 0 ) m_analysisManager->ScaleH2( 1, 1 / m_hist_emission_energies_nEnteries );
     // if( m_hist_transmittance_nEnergies     > 0 ) m_analysisManager->ScaleH1( 1, 1 / m_hist_transmittance_nEnergies     );
 
-    m_analysisManager->SetH1Title     ( 0, "Stopping Power (dEdX)" );
-    m_analysisManager->SetH1XAxisTitle( 0, "E [MeV/m]"             );
-    m_analysisManager->SetH1YAxisTitle( 0, "Counts"                );
+    m_analysisManager->SetH1Title     ( 0, "Stopping Power (dEdX) dEdX" );
+    m_analysisManager->SetH1XAxisTitle( 0, "E [MeV]"                    );
+    m_analysisManager->SetH1YAxisTitle( 0, "$\\langle dEdX \\rangle$"   );
+    
+    m_analysisManager->SetH1Title     ( 1, "Stopping Power (dEdX) counts" );
+    m_analysisManager->SetH1XAxisTitle( 1, "E [MeV]"                      );
+    m_analysisManager->SetH1YAxisTitle( 1, "Counts"                       );
 
     m_analysisManager->SetH2Title     ( 0, "Emission Counts"       );
     m_analysisManager->SetH2XAxisTitle( 0, "s [m]"                 );
@@ -124,13 +129,13 @@ void RunAction::EndOfRunAction(const G4Run* run)
     m_analysisManager->SetH2ZAxisTitle( 0, "Counts"                );
 
     m_analysisManager->SetH2Title     ( 1, "Average Emission Energies" );
-    m_analysisManager->SetH1XAxisTitle( 1, "s [m]"                     );
+    m_analysisManager->SetH2XAxisTitle( 1, "s [m]"                     );
     m_analysisManager->SetH2YAxisTitle( 1, "#theta_{#gamma} [rad]"     );
     m_analysisManager->SetH2ZAxisTitle( 1, "Counts"                    );
 
-    m_analysisManager->SetH1Title     ( 1, "Transmittance" );
-    m_analysisManager->SetH1XAxisTitle( 1, "E [MeV]"       );
-    m_analysisManager->SetH1YAxisTitle( 1, "Counts"        );
+    m_analysisManager->SetH1Title     ( 2, "Transmittance" );
+    m_analysisManager->SetH1XAxisTitle( 2, "E [MeV]"       );
+    m_analysisManager->SetH1YAxisTitle( 2, "Counts"        );
 
     m_analysisManager->Write();
     m_analysisManager->CloseFile();

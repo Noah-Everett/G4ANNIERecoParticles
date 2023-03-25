@@ -126,6 +126,7 @@ inline void SteppingAction::make_tuple_dEdX() {
 
 inline void SteppingAction::make_hist_dEdX() {
     m_analysisManager->FillH1( 0, m_dEdX_energy_prev, m_dEdX_dEdX );
+    m_analysisManager->FillH1( 1, m_dEdX_energy_prev, 1           );
     m_runAction->incrament_hist_dEdX_nEnteries();
 }
 
@@ -158,7 +159,7 @@ inline void SteppingAction::make_tuple_transmittance() {
 }
 
 inline void SteppingAction::make_hist_transmittance() {
-    m_analysisManager->FillH1( 1, m_transmittance_trackLength, 1 );
+    m_analysisManager->FillH1( 2, m_transmittance_trackLength, 1 );
 }
 
 inline bool SteppingAction::kill_neutrino() {
