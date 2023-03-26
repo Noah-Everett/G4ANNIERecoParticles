@@ -1,4 +1,4 @@
-void scaleHist_emission( std::string t_fileName, std::string t_histName_counts, std::string t_histName_energies ) {
+void scale_TH2D( std::string t_fileName, std::string t_histName_counts, std::string t_histName_energies ) {
   // Open the ROOT file containing the histogram
   TFile* file = TFile::Open(t_fileName.c_str(),"UPDATE");
   if (!file) {

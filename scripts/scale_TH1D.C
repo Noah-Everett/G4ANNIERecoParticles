@@ -1,4 +1,4 @@
-void scaleHist_dEdX( std::string t_fileName, std::string t_histName_counts, std::string t_histName_dEdX ) {
+void scale_TH1D( std::string t_fileName, std::string t_histName_counts, std::string t_histName_dEdX ) {
   // Open the ROOT file containing the histogram
   TFile* file = TFile::Open(t_fileName.c_str(),"UPDATE");
   if (!file) {

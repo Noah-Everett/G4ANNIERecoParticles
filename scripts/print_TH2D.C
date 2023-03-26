@@ -1,4 +1,4 @@
-void print_2DHist( std::string t_fileName, std::string t_histName ) {
+void print_TH2D( std::string t_fileName, std::string t_histName ) {
   // Open the ROOT file containing the histogram
   TFile* file = TFile::Open(t_fileName.c_str());
   if (!file) {
