@@ -4,3 +4,5 @@ build/
 runs/
 reco-data/
 *G4ANNIERecoParticles_*.root
+scripts/*.mac
+scripts/G4ANNIERecoParticles*.root
