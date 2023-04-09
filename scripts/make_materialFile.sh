@@ -19,7 +19,7 @@ macro_run() {
 /event/verbose 0
 /tracking/verbose 0
 /process/verbose 0
-/gun/particle ${primary_type}
+/gun/particle ${particle_type}
 /gun/energy ${energy_cur_export} MeV
 /gun/position 0 0 0
 /gun/direction 1 0 0
@@ -27,7 +27,7 @@ macro_run() {
 /process/activate Scintillation
 /process/optical/cerenkov/setTrackSecondariesFirst true
 /process/optical/scintillation/setTrackSecondariesFirst true
-/run/beamOn ${primary_num}
+/run/beamOn ${particle_num}
 EOF
 }
 
@@ -122,20 +122,20 @@ main() {
 # E.g. path: /this/is/a/path.exe
 # E.g. dir:  /this/is/a/dir
 export output_dir="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/reco-data"
-export output_name="water_doped-mu-small.root"
+export output_name="test.root"
 export path_exec="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/build/G4ANNIERecoParticles"
 export dir_scripts="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/scripts"
 export detector_material="water_doped"
 export detector_dX="0.01" # m
 export primary_type="mu-"
-export primary_num="10"
+export primary_num="100"
 export primary_energy_min="0" # MeV
-export primary_energy_max="1200" # MeV
-export primary_energy_delta="10" # MeV
-export dEdX_num="200"
-export gamma_num="10000"
+export primary_energy_max="1000" # MeV #1200
+export primary_energy_delta="500" # MeV #10
+export dEdX_num="1" #200
+export gamma_num="1" #10000
 export gamma_energy_min="0" # eV
-export gamma_energy_max="10" # eV
+export gamma_energy_max="0" # eV #10
 export gamma_energy_delta=".5" # eV
 
 for i in "$@"; do
@@ -170,7 +170,8 @@ export make_dEdX="1"
 export make_emission="0"
 export make_transmittance="0"
 export energy_cur_export=${primary_energy_max}
-export primary_num=${dEdX_num}
+export particle_type=${primary_type}
+export particle_num=${dEdX_num}
 run
 
 for (( primary_energy_cur = ${primary_energy_min}; ( primary_energy_cur <= ${primary_energy_max} && primary_energy_cur >= ${primary_energy_min} ); primary_energy_cur += ${primary_energy_delta} )); do
@@ -179,6 +180,8 @@ for (( primary_energy_cur = ${primary_energy_min}; ( primary_energy_cur <= ${pri
     export make_dEdX="0"
     export make_emission="1"
     export make_transmittance="0"
+    export particle_type=${primary_type}
+    export particle_num=${primary_num}
     run
 done
 
@@ -188,8 +191,8 @@ for gamma_energy_cur in $(seq $(printf "%.10f" ${gamma_energy_min}) $(printf "%.
     export make_dEdX="0"
     export make_emission="0"
     export make_transmittance="1"
-    export primary_type="opticalphoton"
-    export primary_num=${gamma_num}
+    export particle_type="opticalphoton"
+    export particle_num=${gamma_num}
     run
 done
 }

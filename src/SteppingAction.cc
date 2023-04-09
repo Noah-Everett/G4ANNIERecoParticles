@@ -96,7 +96,8 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
         if( abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) != 22 )
             m_emission_prevPrimary_positionThreeVector = m_track->GetPosition();
         else {
-            m_emission_angle  = m_track->GetMomentumDirection().angle( m_emission_prevPrimary_momentumThreeVector );
+            // m_emission_angle  = m_track->GetMomentumDirection().angle( m_emission_prevPrimary_momentumThreeVector );
+            m_emission_angle  = acos( m_track->GetMomentumDirection().x()/m / ( m_track->GetMomentumDirection().mag()/m ) );
             m_emission_energy = m_track->GetTotalEnergy() / MeV;
             if( m_parameterParser->get_make_tuple_emission() ) make_tuple_emission();
             if( m_parameterParser->get_make_hist_emission () ) make_hist_emission ();
