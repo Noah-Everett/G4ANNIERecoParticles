@@ -45,8 +45,8 @@ namespace ANNIERecoParticles
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-SteppingAction::SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser )
-: m_eventAction(eventAction), m_runAction(runAction), m_parameterParser{ t_parameterParser }
+SteppingAction::SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser, PrimaryGeneratorAction* t_primaryGeneratorAction )
+: m_eventAction(eventAction), m_runAction(runAction), m_parameterParser{ t_parameterParser }, m_primaryGeneratorAction{ t_primaryGeneratorAction }
 {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -70,10 +70,10 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
 
     if( m_parameterParser->get_record_dEdX() ) {
         if( is_newPrimary() ) m_dEdX_newPrimary = true;
-        m_dEdX_energy_curr      = m_track->GetKineticEnergy();
-        m_dEdX_trackLength_curr = m_track->GetTrackLength  ();
+        m_dEdX_energy_curr      = m_track->GetKineticEnergy() / MeV;
+        m_dEdX_trackLength_curr = m_track->GetTrackLength  () / m  ;
 
-        if( !m_dEdX_newPrimary && m_track->GetParentID() == 0 && m_stepPoint_post->GetStepStatus() == fGeomBoundary ) {
+        if( !m_dEdX_newPrimary && m_track->GetParentID() == 0 && m_stepPoint_post->GetStepStatus() == fGeomBoundary && m_dEdX_energy_prev > 0 ) {
             m_dEdX_dE   = m_dEdX_energy_curr      - m_dEdX_energy_prev     ;
             m_dEdX_dX   = m_dEdX_trackLength_curr - m_dEdX_trackLength_prev;
             m_dEdX_dEdX = m_dEdX_dE               / m_dEdX_dX              ;
@@ -89,15 +89,15 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
 
     if( m_parameterParser->get_record_emission() ) {
         if( m_track->GetParentID() == 0 ) {
-            m_emission_prevPrimary_energy              = m_track->GetTotalEnergy      ();
-            m_emission_prevPrimary_trackLength         = m_track->GetTrackLength      ();
+            m_emission_prevPrimary_energy              = m_track->GetTotalEnergy      () / MeV;
+            m_emission_prevPrimary_trackLength         = m_track->GetTrackLength      () / m;
             m_emission_prevPrimary_momentumThreeVector = m_track->GetMomentumDirection();
         }
         if( abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) != 22 )
             m_emission_prevPrimary_positionThreeVector = m_track->GetPosition();
         else {
             m_emission_angle  = m_track->GetMomentumDirection().angle( m_emission_prevPrimary_momentumThreeVector );
-            m_emission_energy = m_track->GetTotalEnergy() / eV;
+            m_emission_energy = m_track->GetTotalEnergy() / MeV;
             if( m_parameterParser->get_make_tuple_emission() ) make_tuple_emission();
             if( m_parameterParser->get_make_hist_emission () ) make_hist_emission ();
             m_track->SetTrackStatus( fKillTrackAndSecondaries );
@@ -105,14 +105,16 @@ void SteppingAction::UserSteppingAction( const G4Step* t_step )
     }
 
     if( m_parameterParser->get_record_transmittance() &&
-        m_track->GetParentID() == 0 && abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) == 22 ) {
+        abs( m_track->GetParticleDefinition()->GetPDGEncoding() ) == 22 ) {
         if( is_newPrimary() ) {
-            m_transmittance_initEnergy = m_track->GetTotalEnergy();
-            if( m_parameterParser->get_make_hist_transmittance () ) make_hist_transmittance ();
-        }
-        m_transmittance_trackLength = m_track->GetTrackLength();
+            if( m_parameterParser->get_make_hist_transmittance() ) make_hist_transmittance ();
+            m_transmittance_trackLength = m_track->GetTrackLength() / m;
+        } else
+            m_transmittance_trackLength = m_track->GetTrackLength() / m;
         if( m_parameterParser->get_make_tuple_transmittance() ) make_tuple_transmittance();
     }
+
+    m_primaryGeneratorAction->is_newPrimary = false;
 }
 
 inline void SteppingAction::make_tuple_dEdX() {
@@ -125,6 +127,10 @@ inline void SteppingAction::make_tuple_dEdX() {
 }
 
 inline void SteppingAction::make_hist_dEdX() {
+    if( m_runAction->hist_dEdX_min > m_dEdX_energy_prev ) G4cout << "Hist value out of bounds! :: dEdX energy (" << m_dEdX_energy_prev << ") is less than min ("    << m_runAction->hist_dEdX_min << ")." << G4endl;
+    if( m_runAction->hist_dEdX_max < m_dEdX_energy_prev ) G4cout << "Hist value out of bounds! :: dEdX energy (" << m_dEdX_energy_prev << ") is greater than max (" << m_runAction->hist_dEdX_max << ")." << G4endl;
+    if( m_dEdX_dEdX                > 0                  ) { G4cout << "Hist value out of bounds! :: dEdX dEdX ("   << m_dEdX_dEdX        << ") is greater than 0 at energy of " << m_dEdX_energy_prev << "."                                          << G4endl;
+    G4cout << m_track->GetParticleDefinition()->GetParticleName() << " :: " << m_track->GetParentID() << " :: " << m_track->GetKineticEnergy() / MeV << " :: " << m_track->GetParticleDefinition()->GetPDGEncoding() << G4endl; }
     m_analysisManager->FillH1( 0, m_dEdX_energy_prev, m_dEdX_dEdX );
     m_analysisManager->FillH1( 1, m_dEdX_energy_prev, 1           );
     m_runAction->incrament_hist_dEdX_nEnteries();
@@ -134,7 +140,7 @@ inline void SteppingAction::make_tuple_emission() {
     m_analysisManager->FillNtupleDColumn( 1, 0, m_emission_prevPrimary_energy                      );
     m_analysisManager->FillNtupleDColumn( 1, 1, m_emission_prevPrimary_trackLength                 );
     m_analysisManager->FillNtupleDColumn( 1, 2, m_emission_angle                                   );
-    m_analysisManager->FillNtupleDColumn( 1, 3, m_track->GetTotalEnergy()                          );
+    m_analysisManager->FillNtupleDColumn( 1, 3, m_track->GetTotalEnergy() / MeV                    );
     m_analysisManager->FillNtupleIColumn( 1, 4, m_track->GetDefinition()->GetProcessManager()->GetProcessIndex( const_cast< G4VProcess* >( m_track->GetCreatorProcess() ) ) );
     m_analysisManager->FillNtupleIColumn( 1, 5, m_track->GetParticleDefinition()->GetPDGEncoding() );
     m_analysisManager->FillNtupleDColumn( 1, 6, m_emission_prevPrimary_positionThreeVector.x()     );
@@ -144,21 +150,28 @@ inline void SteppingAction::make_tuple_emission() {
 }
 
 inline void SteppingAction::make_hist_emission() {
-    m_analysisManager->FillH2( 0, m_emission_prevPrimary_trackLength, m_emission_angle, 1                 );
-    if( m_emission_energy > 200 ) {
-        G4cout << "Warning: Large emission energy of " << m_emission_energy << " eV" << G4endl;
+    if( m_runAction->hist_emission_distance_min > m_emission_prevPrimary_trackLength ) G4cout << "Hist value out of bounds! :: emission distance (" << m_emission_prevPrimary_trackLength << ") is less than min ("    << m_runAction->hist_emission_distance_min << ")." << G4endl;
+    if( m_runAction->hist_emission_distance_max < m_emission_prevPrimary_trackLength ) G4cout << "Hist value out of bounds! :: emission distance (" << m_emission_prevPrimary_trackLength << ") is greater than max (" << m_runAction->hist_emission_distance_max << ")." << G4endl;
+    if( m_runAction->hist_emission_angle_min > m_emission_angle ) G4cout << "Hist value out of bounds! :: emission angle (" << m_emission_angle << ") is less than min ("    << m_runAction->hist_emission_angle_min << ")." << G4endl;
+    if( m_runAction->hist_emission_angle_max < m_emission_angle ) G4cout << "Hist value out of bounds! :: emission angle (" << m_emission_angle << ") is greater than max (" << m_runAction->hist_emission_angle_max << ")." << G4endl;
+    m_analysisManager->FillH2( 0, m_emission_prevPrimary_trackLength, m_emission_angle, 1 );
+    if( m_emission_energy > 200 * eV / MeV ) {
+        G4cout << "Warning: Large emission energy of " << m_emission_energy << " MeV --> " << m_emission_energy / eV * MeV << " eV." << G4endl;
         m_emission_energy = 0;
-    } else
+    } else {
         m_runAction->incrament_hist_emission_energies_nEnteries();
-    m_analysisManager->FillH2( 1, m_emission_prevPrimary_trackLength, m_emission_angle, m_emission_energy );
+        m_analysisManager->FillH2( 1, m_emission_prevPrimary_trackLength, m_emission_angle, m_emission_energy );
+    }
 }
 
 inline void SteppingAction::make_tuple_transmittance() {
-    m_analysisManager->FillNtupleDColumn( 2, 0, m_transmittance_trackLength );
-    m_analysisManager->FillNtupleDColumn( 2, 1, m_track->GetTotalEnergy()   );
+    m_analysisManager->FillNtupleDColumn( 2, 0, m_transmittance_trackLength      );
+    m_analysisManager->FillNtupleDColumn( 2, 1, m_track->GetTotalEnergy() / MeV  );
 }
 
 inline void SteppingAction::make_hist_transmittance() {
+    if( m_runAction->hist_transmittance_min > m_transmittance_trackLength ) G4cout << "Hist value out of bounds! :: transmittance distance (" << m_transmittance_trackLength << ") is less than min ("    << m_runAction->hist_transmittance_min << ")." << G4endl;
+    if( m_runAction->hist_transmittance_max < m_transmittance_trackLength ) G4cout << "Hist value out of bounds! :: transmittance distance (" << m_transmittance_trackLength << ") is greater than max (" << m_runAction->hist_transmittance_max << ")." << G4endl;
     m_analysisManager->FillH1( 2, m_transmittance_trackLength, 1 );
 }
 
@@ -186,16 +199,18 @@ inline bool SteppingAction::kill_photon() {
 }
 
 inline bool SteppingAction::is_newPrimary() {
-    if( m_parameterParser->get_record_dEdX() ) {
-        if( m_track->GetParentID() == 0 && m_track->GetTrackLength() < m_dEdX_trackLength_prev )
-            return true;
-        return false;
-    } else if( m_parameterParser->get_record_transmittance() ) {
-        if( m_track->GetParentID() == 0 && m_track->GetTrackLength() < m_transmittance_trackLength )
-            return true;
-        return false;
-    } else
-        return false;
+    // if( m_parameterParser->get_record_dEdX() ) {
+    //     if( m_primaryGeneratorAction->is_newPrimary )
+    //         return true;
+    //     else if( m_track->GetParentID() != 0 )//&& m_track->GetTrackLength() < m_dEdX_trackLength_prev )
+    //         return false;
+    //     else
+    //         return false;
+    // } else if( m_parameterParser->get_record_transmittance() ) {
+    //     return m_primaryGeneratorAction->is_newPrimary;
+    // } else
+    //     return false;
+    return m_primaryGeneratorAction->is_newPrimary;
 }
 
 }

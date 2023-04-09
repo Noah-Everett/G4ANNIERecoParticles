@@ -45,17 +45,18 @@ void ActionInitialization::BuildForMaster() const
 
 void ActionInitialization::Build() const
 {
-  SetUserAction( new PrimaryGeneratorAction );
+    PrimaryGeneratorAction* primaryGeneratorAction = new PrimaryGeneratorAction;
+    SetUserAction( primaryGeneratorAction );
 
-  RunAction* runAction = new RunAction;
-  SetUserAction( static_cast< G4UserRunAction* >( runAction ) );
+    RunAction* runAction = new RunAction;
+    SetUserAction( static_cast< G4UserRunAction* >( runAction ) );
 
-  EventAction* eventAction = new EventAction( runAction );
-  SetUserAction( eventAction );
+    EventAction* eventAction = new EventAction( runAction );
+    SetUserAction( eventAction );
 
-  SteppingAction* steppingAction = new SteppingAction( eventAction, runAction, m_parameterParser );
-  SetUserAction( steppingAction );
-  // SetUserAction(new StackingAction());
+    SteppingAction* steppingAction = new SteppingAction( eventAction, runAction, m_parameterParser, primaryGeneratorAction );
+    SetUserAction( steppingAction );
+    // SetUserAction(new StackingAction());
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

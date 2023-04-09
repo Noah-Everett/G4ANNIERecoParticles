@@ -57,6 +57,19 @@ public:
     inline void incrament_hist_emission_energies_nEnteries() { ++m_hist_emission_energies_nEnteries; }
     inline void incrament_hist_transmittance_nEnteries    () { ++m_hist_transmittance_nEnergies    ; }
 
+    G4double hist_dEdX_nBins                 ;
+    G4double hist_dEdX_min                   ;
+    G4double hist_dEdX_max                   ;
+    G4double hist_emission_distance_nBins  ;
+    G4double hist_emission_distance_min    ;
+    G4double hist_emission_distance_max    ;
+    G4double hist_emission_angle_nBins     ;
+    G4double hist_emission_angle_min       ;
+    G4double hist_emission_angle_max       ;
+    G4double hist_transmittance_nBins             ;
+    G4double hist_transmittance_min               ;
+    G4double hist_transmittance_max               ;
+
 private:
     G4AnalysisManager* m_analysisManager = G4AnalysisManager::Instance();
 

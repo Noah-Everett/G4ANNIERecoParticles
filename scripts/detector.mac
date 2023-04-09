@@ -1,0 +1,8 @@
+/ANNIERecoParticles/material                 water_doped
+/ANNIERecoParticles/stepVolumeWidth          10 m
+/ANNIERecoParticles/make/tuple/dEdX          0
+/ANNIERecoParticles/make/tuple/emission      0
+/ANNIERecoParticles/make/tuple/transmittance 0
+/ANNIERecoParticles/make/hist/dEdX           0
+/ANNIERecoParticles/make/hist/emission       1
+/ANNIERecoParticles/make/hist/transmittance  0

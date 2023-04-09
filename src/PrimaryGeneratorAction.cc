@@ -71,6 +71,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   fParticleGun->SetParticlePosition(G4ThreeVector(0,0,0));
   fParticleGun->GeneratePrimaryVertex( anEvent );
+  is_newPrimary = true;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

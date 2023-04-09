@@ -46,6 +46,8 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
     void GeneratePrimaries(G4Event*) override;
     const G4ParticleGun* GetParticleGun() const { return fParticleGun; }
 
+    bool is_newPrimary = true;
+
   private:
     G4ParticleGun* fParticleGun = nullptr;
     G4Box* fSpawnBox = nullptr;

@@ -58,13 +58,17 @@ RunAction::RunAction()
     m_analysisManager->SetNtupleMerging(true);
     m_analysisManager->OpenFile();
 
-    new G4UnitDefinition( "MeV/m", "MeV/m", "Energy/Length", MeV/m );
+    // new G4UnitDefinition( "MeV/m", "MeV/m", "Energy/Length", MeV/m );
 
-    m_analysisManager->CreateH1("hist_dEdX_dEdX"        , "hist_dEdX_dEdX"        , 1000, 0   , 1200                , "MeV/m"        );
-    m_analysisManager->CreateH1("hist_dEdX_counts"      , "hist_dEdX_counts"      , 1000, 0   , 1200                                 );
-    m_analysisManager->CreateH2("hist_emission_counts"  , "hist_emission_counts"  , 1000, 0   , 1200, 100, 0, 2*M_PI, "m"    , "rad" );
-    m_analysisManager->CreateH2("hist_emission_energies", "hist_emission_energies", 1000, 0   , 1200, 100, 0, 2*M_PI, "m"    , "rad" );
-    m_analysisManager->CreateH1("hist_transmittance"    , "hist_transmittance"    , 1000, 0   , 1000                , "m"            );
+    hist_dEdX_nBins              = 1000; hist_dEdX_min              = 0; hist_dEdX_max              = 1200;
+    hist_emission_distance_nBins = 1000; hist_emission_distance_min = 0; hist_emission_distance_max = 10  ; hist_emission_angle_nBins = 1000; hist_emission_angle_min = 0; hist_emission_angle_max = 2*M_PI;
+    hist_transmittance_nBins     = 1000; hist_transmittance_min     = 0; hist_transmittance_max     = 1000;
+
+    m_analysisManager->CreateH1("hist_dEdX_dEdX"        , "hist_dEdX_dEdX"        , hist_dEdX_nBins             , hist_dEdX_min             , hist_dEdX_max                                                                                           );//, "MeV/m"        );
+    m_analysisManager->CreateH1("hist_dEdX_counts"      , "hist_dEdX_counts"      , hist_dEdX_nBins             , hist_dEdX_min             , hist_dEdX_max                                                                                           );//                 );
+    m_analysisManager->CreateH2("hist_emission_counts"  , "hist_emission_counts"  , hist_emission_distance_nBins, hist_emission_distance_min, hist_emission_distance_max, hist_emission_angle_nBins, hist_emission_angle_min, hist_emission_angle_max );//, "m"    , "rad" );
+    m_analysisManager->CreateH2("hist_emission_energies", "hist_emission_energies", hist_emission_distance_nBins, hist_emission_distance_min, hist_emission_distance_max, hist_emission_angle_nBins, hist_emission_angle_min, hist_emission_angle_max );//, "m"    , "rad" );
+    m_analysisManager->CreateH1("hist_transmittance"    , "hist_transmittance"    , hist_transmittance_nBins    , hist_transmittance_min    , hist_transmittance_max                                                                                  );//, "m"            );
 
     m_analysisManager->CreateNtuple("tuple_dEdX", "tuple_dEdX");
     m_analysisManager->CreateNtupleDColumn("E");
@@ -115,9 +119,9 @@ void RunAction::EndOfRunAction(const G4Run* run)
     // if( m_hist_emission_energies_nEnteries > 0 ) m_analysisManager->ScaleH2( 1, 1 / m_hist_emission_energies_nEnteries );
     // if( m_hist_transmittance_nEnergies     > 0 ) m_analysisManager->ScaleH1( 1, 1 / m_hist_transmittance_nEnergies     );
 
-    m_analysisManager->SetH1Title     ( 0, "Stopping Power (dEdX) dEdX" );
-    m_analysisManager->SetH1XAxisTitle( 0, "E [MeV]"                    );
-    m_analysisManager->SetH1YAxisTitle( 0, "$\\langle dEdX \\rangle$"   );
+    m_analysisManager->SetH1Title     ( 0, "Stopping Power (dEdX) dEdX"       );
+    m_analysisManager->SetH1XAxisTitle( 0, "E [MeV]"                          );
+    m_analysisManager->SetH1YAxisTitle( 0, "$\\langle dEdX \\rangle$ [MeV/m]" );
     
     m_analysisManager->SetH1Title     ( 1, "Stopping Power (dEdX) counts" );
     m_analysisManager->SetH1XAxisTitle( 1, "E [MeV]"                      );
@@ -134,7 +138,7 @@ void RunAction::EndOfRunAction(const G4Run* run)
     m_analysisManager->SetH2ZAxisTitle( 1, "Counts"                    );
 
     m_analysisManager->SetH1Title     ( 2, "Transmittance" );
-    m_analysisManager->SetH1XAxisTitle( 2, "E [MeV]"       );
+    m_analysisManager->SetH1XAxisTitle( 2, "s [m]"         );
     m_analysisManager->SetH1YAxisTitle( 2, "Counts"        );
 
     m_analysisManager->Write();

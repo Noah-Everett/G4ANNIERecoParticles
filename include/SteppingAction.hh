@@ -32,6 +32,7 @@
 #include "globals.hh"
 #include "RunAction.hh"
 #include "ParameterParser.hh"
+#include "PrimaryGeneratorAction.hh"
 
 class G4LogicalVolume;
 
@@ -46,7 +47,7 @@ class EventAction;
 class SteppingAction : public G4UserSteppingAction
 {
 public:
-    SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser );
+    SteppingAction(EventAction* eventAction, RunAction* runAction, ParameterParser* t_parameterParser, PrimaryGeneratorAction* t_primaryGeneratorAction );
    ~SteppingAction() override;
 
     // method from the base class
@@ -65,10 +66,11 @@ public:
     inline void make_hist_transmittance ();
     
 private:
-    EventAction      * m_eventAction    { nullptr };
-    RunAction        * m_runAction      { nullptr };
-    ParameterParser  * m_parameterParser{ nullptr };
-    G4AnalysisManager* m_analysisManager{ G4AnalysisManager::Instance() };
+    EventAction           * m_eventAction           { nullptr };
+    RunAction             * m_runAction             { nullptr };
+    ParameterParser       * m_parameterParser       { nullptr };
+    PrimaryGeneratorAction* m_primaryGeneratorAction{ nullptr };
+    G4AnalysisManager     * m_analysisManager       { G4AnalysisManager::Instance() };
 
     G4Track    * m_track         { nullptr };
     G4StepPoint* m_stepPoint_prev{ nullptr };
@@ -93,8 +95,8 @@ private:
     G4double      m_emission_energy                         { 0 };
 
     // transmittance
-    G4double m_transmittance_trackLength{ 0 };
-    G4double m_transmittance_initEnergy { 0 };
+    G4double m_transmittance_trackLength{ 99999 };
+    G4int    m_transmittance_parentID   { 0     };
 };
 
 }

@@ -101,13 +101,13 @@ run() {
     rm G4ANNIERecoParticles_t*.root # shouldnt be needed but just in case
 
     if [ "${make_dEdX}" -eq "1" ]; then
-        # root -x -q ${dir_scripts}/scale_TH1D_dEdX.C\(\"${dir_out}/G4/G4ANNIERecoParticles.root\",\"hist_dEdX_counts\;1\",\"hist_dEdX_dEdX\;1\"\)
+        root -x -q ${dir_scripts}/scale_TH1D.C\(\"G4ANNIERecoParticles.root\",\"hist_dEdX_counts\;1\",\"hist_dEdX_dEdX\;1\"\)
         root -x -q ${dir_scripts}/addToTFile_TH1D.C\(\"${output_dir}/${output_name}\",\"G4ANNIERecoParticles.root\",\"hist_dEdX_dEdX\;1\"\)
     fi
     if [ "${make_emission}" -eq "1" ]; then
         root -x -q ${dir_scripts}/scale_TH2D.C\(\"G4ANNIERecoParticles.root\",\"hist_emission_counts\;1\",\"hist_emisssion_energies\;1\"\)
-        # root -x -q ${dir_scripts}/add_hist.C\(\"${output_dir}/${output_name}\",\"${dir_out}/G4/G4ANNIERecoParticles.root\",\"hist_emission_counts\"\)
         root -x -q ${dir_scripts}/addToTFile_TH2D.C\(\"${output_dir}/${output_name}\",\"G4ANNIERecoParticles.root\",\"hist_emission_energies\;1\"\)
+        root -x -q ${dir_scripts}/addToTFile_TH2D.C\(\"${output_dir}/${output_name}\",\"G4ANNIERecoParticles.root\",\"hist_emission_counts\;1\"\)
     fi
     if [ "${make_transmittance}" -eq "1" ]; then
         root -x -q ${dir_scripts}/addToTFile_TH1D.C\(\"${output_dir}/${output_name}\",\"G4ANNIERecoParticles.root\",\"hist_transmittance\;1\"\)
@@ -122,20 +122,21 @@ main() {
 # E.g. path: /this/is/a/path.exe
 # E.g. dir:  /this/is/a/dir
 export output_dir="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/reco-data"
-export output_name="test.root"
+export output_name="water_doped-mu-small.root"
 export path_exec="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/build/G4ANNIERecoParticles"
 export dir_scripts="/Users/noah-everett/Documents/ANNIE/ANNIE_Reco/G4VtxRecoParticles/scripts"
 export detector_material="water_doped"
-export detector_dX="0.01"
+export detector_dX="0.01" # m
 export primary_type="mu-"
 export primary_num="10"
-export primary_energy_min="0"
-export primary_energy_max="1000"
-export primary_energy_delta="500"
-export gamma_num="10"
-export gamma_energy_min="0"
-export gamma_energy_max="0.00001"
-export gamma_energy_delta="0.000005"
+export primary_energy_min="0" # MeV
+export primary_energy_max="1200" # MeV
+export primary_energy_delta="10" # MeV
+export dEdX_num="200"
+export gamma_num="10000"
+export gamma_energy_min="0" # eV
+export gamma_energy_max="10" # eV
+export gamma_energy_delta=".5" # eV
 
 for i in "$@"; do
   case $i in
@@ -169,6 +170,7 @@ export make_dEdX="1"
 export make_emission="0"
 export make_transmittance="0"
 export energy_cur_export=${primary_energy_max}
+export primary_num=${dEdX_num}
 run
 
 for (( primary_energy_cur = ${primary_energy_min}; ( primary_energy_cur <= ${primary_energy_max} && primary_energy_cur >= ${primary_energy_min} ); primary_energy_cur += ${primary_energy_delta} )); do
@@ -182,11 +184,12 @@ done
 
 for gamma_energy_cur in $(seq $(printf "%.10f" ${gamma_energy_min}) $(printf "%.10f" ${gamma_energy_delta}) $(printf "%.10f" ${gamma_energy_max})); do
     export detector_dX="10"
-    export energy_cur_export=${gamma_energy_cur}
+    export energy_cur_export=$(echo "scale=10; ${gamma_energy_cur}/1000000" | bc)
     export make_dEdX="0"
     export make_emission="0"
     export make_transmittance="1"
-    export particle_type="gamma"
+    export primary_type="opticalphoton"
+    export primary_num=${gamma_num}
     run
 done
 }

@@ -81,7 +81,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     ConstructMaterials();
     
     G4bool checkOverlaps = true;
-    G4double size_X=100*m, size_Y=200*m, size_Z=200*m;
+    G4double size_X=2000*m, size_Y=200*m, size_Z=200*m;
 
     G4Material* material = G4Material::GetMaterial( m_parameterParser->get_material() );
     G4cout << "Using " << material->GetName() << G4endl;
@@ -103,7 +103,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     G4LogicalVolume* material_lv = new G4LogicalVolume( material_s, material, "material" );
 
-    for( int i = 0; i < size_X / size_dX; i++, x += size_dX )
+    for( int i = 0; i < 20*m / size_dX; i++, x += size_dX )
         new G4PVPlacement( 0, G4ThreeVector( x, 0, 0 ), material_lv, "material", world_lv, true, i, checkOverlaps );
 
     return world_pv;

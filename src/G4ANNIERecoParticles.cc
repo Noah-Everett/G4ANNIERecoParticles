@@ -45,6 +45,7 @@ using namespace ANNIERecoParticles;
 int main(int argc, char** argv)
 {
     G4SteppingVerbose::UseBestUnit( 4 );
+    // G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange( .05*eV, 100.*GeV );
 
     ParameterParser* parameterParser = new ParameterParser();
     G4UImanager* UImanager = G4UImanager::GetUIpointer();

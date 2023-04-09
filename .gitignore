@@ -2,3 +2,5 @@ build/
 .vscode/
 *.DS_Store
 runs/
+reco-data/
+*G4ANNIERecoParticles_*.root

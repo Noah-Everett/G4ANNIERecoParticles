@@ -7,8 +7,8 @@ void scale_TH1D( std::string t_fileName, std::string t_histName_counts, std::str
   }
 
   // Get the histogram from the file
-  TH2D* counts = (TH2D*)(file->Get(t_histName_counts.c_str()));
-  TH2D* dEdX   = (TH2D*)(file->Get(t_histName_dEdX.c_str()));
+  TH1D* counts = (TH1D*)(file->Get(t_histName_counts.c_str()));
+  TH1D* dEdX   = (TH1D*)(file->Get(t_histName_dEdX.c_str()));
   if (!counts || !dEdX) {
     std::cerr << "Failed to retrieve histogram!" << std::endl;
     return 1;
@@ -19,9 +19,12 @@ void scale_TH1D( std::string t_fileName, std::string t_histName_counts, std::str
     std::cerr << "Not same" << std::endl;
     return 1;
   }
-  for (int i = 1; i <= counts->GetNbinsX(); ++i)
-      if (counts->GetBinContent(i)!=0)
+  for (int i = 1; i <= counts->GetNbinsX(); ++i){
+    std::cout << counts->GetBinContent(i) << std::endl;
+      if (counts->GetBinContent(i)!=0) {
         dEdX->SetBinContent(i, dEdX->GetBinContent(i) / counts->GetBinContent(i) );
+      }
+      }
 
   // Close the file
   dEdX->Write("", TObject::kOverwrite);
